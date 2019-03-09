@@ -25,7 +25,14 @@ chrome.storage.onChanged.addListener((changes, namespace) =>
 document.querySelector('#add').addEventListener('click', e => {
   chrome.storage.sync.get('positions', data => {
     data.positions = data.positions || [];
-    chrome.storage.sync.set({positions: data.positions.concat(positions)});
+    positions.forEach(p => {
+      var match = data.positions.find(e => e.symbol === p.symbol && e.currency == p.currency);
+      if (match)
+        match.value += p.value;
+      else
+        data.positions.push(p);
+    });
+    chrome.storage.sync.set({positions: data.positions});
   });
 }, false);
 
