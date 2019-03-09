@@ -30,4 +30,4 @@ document.querySelectorAll('[id$="j_id709"]')
       })
   );
 
-console.log(positions);
+  chrome.runtime.sendMessage({positions: positions});
