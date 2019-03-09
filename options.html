@@ -8,6 +8,9 @@
   <div data-outlet="mappings"></div>
   <h3>Map Symbol to Category</h3>
   <div data-outlet="map"></div>
+  <h3>Conversion</h3>
+  <div data-outlet="conversion"></div>
+  <div data-outlet="conversion-edit"></div>
 
   <script id="no-mappings" type="text/html">
     <div>No mappings found.</div>
@@ -36,6 +39,14 @@
 
   <script id="map" type="text/html">
     <input name="symbol" placeholder="Symbol" value="" /> maps to <input name="category" placeholder="Category" value="" />
+  </script>
+
+  <script id="conversion" type="text/html">
+    USD/CAD: <strong><%- conversion %></strong>
+  </script>
+
+  <script id="conversion-edit" type="text/html">
+    <input name="conversion" placeholder="USD/CAD" value="<%- conversion %>" />
   </script>
 
   <script src="underscore-min.js"></script>
