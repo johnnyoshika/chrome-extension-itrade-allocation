@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+
+<body>
+  <h3>Mappings</h3>
+  <div data-outlet="mappings"></div>
+  <h3>Map Symbol to Category</h3>
+  <div data-outlet="map"></div>
+
+  <script id="no-mappings" type="text/html">
+    <div>No mappings found.</div>
+  </script>
+
+  <script id="mappings" type="text/html">
+    <table>
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Category</th>
+            <th>Remove</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% _.each(mappings, function(m) { %>
+            <tr data-symbol="<%- m.symbol %>">
+                <td><%- m.symbol %></td>
+                <td><%- m.category %></td>
+                <td><a data-action="delete" href="javascript:void(0);">X</td>
+              </tr>      
+          <% }); %>
+        </tbody>
+      </table>
+  </script>
+
+  <script id="map" type="text/html">
+    <input name="symbol" placeholder="Symbol" value="" /> maps to <input name="category" placeholder="Category" value="" />
+  </script>
+
+  <script src="underscore-min.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
