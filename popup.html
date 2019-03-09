@@ -1,1 +1,43 @@
-<h1>Hello!!!</h1>
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+  <div>
+    <h3>This Account</h3>
+    <div data-outlet="account"></div>
+    <h3>Actions</h3>
+    <button id="add">Add to Total</button> <button id="reset">Reset Total</button>
+    <h3>Total</h3>
+    <div data-outlet="total"></div>
+  </div>
+  
+  <script id="no-positions" type="text/html">
+    <div>No positions found.</div>
+  </script>
+
+  <script id="positions" type="text/html">
+    <table>
+      <thead>
+        <tr>
+          <th>Symbol</th>
+          <th>Value</th>
+          <th>Currency</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% _.each(positions, function(p) { %>
+          <tr>
+              <td><%- p.symbol %></td>
+              <td><%- p.value %></td>
+              <td><%- p.currency %></td>
+            </tr>      
+        <% }); %>
+      </tbody>
+    </table>
+  </script>
+
+  <script src="https://underscorejs.org/underscore-min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

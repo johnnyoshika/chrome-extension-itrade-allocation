@@ -17,5 +17,6 @@
       "48": "images/scotia48.png",
       "128": "images/scotia128.png"
     }
-  }
+  },
+  "content_security_policy": "script-src 'self' https://underscorejs.org/underscore-min.js; object-src 'self'"
 }
