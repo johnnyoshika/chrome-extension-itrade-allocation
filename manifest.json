@@ -4,7 +4,10 @@
   "description": "Calculate portfolio allocation at Scotia iTrade.",
   "version": "1.0",
   "author": "Johnny Oshika",
-  "permissions": ["declarativeContent"],
+  "permissions": [
+    "declarativeContent",
+    "activeTab"
+  ],
   "background": {
     "scripts": ["background.js"],
     "persistent": false
