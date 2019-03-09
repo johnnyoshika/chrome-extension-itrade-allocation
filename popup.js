@@ -21,7 +21,10 @@ chrome.storage.sync.get('positions', data =>
 chrome.storage.onChanged.addListener((changes, namespace) =>
   changes.positions && renderPortfolio('total', changes.positions.newValue));
 
-
+document.querySelector('#mappings').addEventListener('click', e => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('options.html') });
+});
+  
 document.querySelector('#add').addEventListener('click', e => {
   chrome.storage.sync.get('positions', data => {
     data.positions = data.positions || [];
