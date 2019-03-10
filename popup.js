@@ -1,6 +1,11 @@
 var noPositionsTemplate = _.template(document.querySelector('#no-positions').innerHTML);
 var positionsTemplate = _.template(document.querySelector('#positions').innerHTML);
+var conversionTemplate = _.template(document.querySelector('#conversion').innerHTML);
+var allocationsTemplate = _.template(document.querySelector('#allocations').innerHTML);
 var positions;
+
+var cad = (value, currency, conversion) =>
+  value / (currency === 'USD' ? conversion : 1);
 
 chrome.tabs.query({active: true, currentWindow: true}, tabs =>
   chrome.tabs.executeScript(tabs[0].id, { file: 'contentScript.js' }));
@@ -10,16 +15,56 @@ var renderPortfolio = (type, positions) =>
     ? document.querySelector(`[data-outlet="${type}"]`).innerHTML = positionsTemplate({ positions: positions })
     : document.querySelector(`[data-outlet="${type}"]`).innerHTML = noPositionsTemplate();
 
+var renderConversion = conversion =>
+  document.querySelector(`[data-outlet="conversion"]`).innerHTML = conversionTemplate({ conversion: conversion });
+
+var renderAllocations = (positions, mappings, conversion) => {
+  if (!positions.length) {
+    document.querySelector(`[data-outlet="allocations"]`).innerHTML = noPositionsTemplate();
+    return;
+  }
+
+  var allocations = positions
+    .map(p => ({
+      position: p,
+      mapping: mappings.find(m => m.symbol === p.symbol) || { category: 'Uncategorized', symbol: p.symbol } }))
+    .reduce((allocations, pm) => {
+      var allocation = allocations.find(a => a.category === pm.mapping.category);
+      if (!allocation) {
+        allocation = { category: pm.mapping.category, value: 0 };
+        allocations.push(allocation);
+      }
+      allocation.value += cad(pm.position.value, pm.position.currency, conversion);
+      return allocations;
+    }, []);
+
+  var total = allocations.reduce((sum, a) => sum + a.value, 0);
+
+  document.querySelector(`[data-outlet="allocations"]`).innerHTML = allocationsTemplate({
+    allocations: allocations
+      .map(a => ({ category: a.category, value: '$' + a.value.toFixed(2), percentage: ((a.value / total) * 100).toFixed(1) + '%' }))
+      .sort((a, b) => b.value - a.value)
+  });
+}
+
 chrome.runtime.onMessage.addListener(request => {
   positions = request.positions;
-  request.positions && renderPortfolio('account', request.positions)
+  request.positions && renderPortfolio('account', request.positions);
 });
 
-chrome.storage.sync.get('positions', data => 
-  (data.positions = data.positions || []) && renderPortfolio('total', data.positions));
+var render = () => {
+  chrome.storage.sync.get(['positions', 'mappings', 'conversion'], data => {
+    data.positions = data.positions || [];
+    data.conversion = data.conversion || 1;
+    data.mappings = data.mappings || [];
 
-chrome.storage.onChanged.addListener((changes, namespace) =>
-  changes.positions && renderPortfolio('total', changes.positions.newValue));
+    renderPortfolio('total', data.positions);
+    renderConversion(data.conversion);
+    renderAllocations(data.positions, data.mappings, data.conversion);
+  });
+};
+
+chrome.storage.onChanged.addListener((changes, namespace) => render());
 
 document.querySelector('#mappings').addEventListener('click', e => {
   chrome.tabs.create({ url: chrome.runtime.getURL('options.html') });
@@ -42,3 +87,5 @@ document.querySelector('#add').addEventListener('click', e => {
 document.querySelector('#reset').addEventListener('click', e => {
   chrome.storage.sync.set({positions: []});
 }, false);
+
+render();

@@ -13,6 +13,10 @@
     <button id="add">Add to Total</button> <button id="reset">Reset Total</button>
     <h3>Total</h3>
     <div data-outlet="total"></div>
+    <h3>Conversion</h3>
+    <div data-outlet="conversion"></div>
+    <h3>Allocations</h3>
+    <div data-outlet="allocations"></div>
   </div>
   
   <script id="no-positions" type="text/html">
@@ -31,10 +35,35 @@
       <tbody>
         <% _.each(positions, function(p) { %>
           <tr>
-              <td><%- p.symbol %></td>
-              <td><%- p.value %></td>
-              <td><%- p.currency %></td>
-            </tr>      
+            <td><%- p.symbol %></td>
+            <td><%- p.value %></td>
+            <td><%- p.currency %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </script>
+
+  <script id="conversion" type="text/html">
+    USD/CAD: <strong><%- conversion %></strong>
+  </script>
+
+  <script id="allocations" type="text/html">
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Value</th>
+          <th>Percentage</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% _.each(allocations, function(a) { %>
+          <tr>
+            <td><%- a.category %></td>
+            <td><%- a.value %></td>
+            <td><%- a.percentage %></td>
+          </tr>
         <% }); %>
       </tbody>
     </table>
