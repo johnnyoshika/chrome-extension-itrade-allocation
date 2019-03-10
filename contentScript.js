@@ -30,4 +30,4 @@ document.querySelectorAll('[id$="j_id709"]')
       })
   );
 
-  chrome.runtime.sendMessage({positions: positions});
+chrome.runtime.sendMessage({positions: positions});
