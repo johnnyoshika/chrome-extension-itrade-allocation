@@ -36,7 +36,7 @@
         <% _.each(positions, function(p) { %>
           <tr>
             <td><%- p.symbol %></td>
-            <td><%- p.value %></td>
+            <td>$<%- numberWithCommas(p.value) %></td>
             <td><%- p.currency %></td>
           </tr>
         <% }); %>
@@ -61,8 +61,8 @@
         <% _.each(allocations, function(a) { %>
           <tr>
             <td><%- a.category %></td>
-            <td><%- a.value %></td>
-            <td><%- a.percentage %></td>
+            <td>$<%- numberWithCommas(a.value) %></td>
+            <td><%- a.percentage.toFixed(1) %>%</td>
           </tr>
         <% }); %>
       </tbody>

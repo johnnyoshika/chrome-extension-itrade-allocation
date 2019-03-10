@@ -7,6 +7,15 @@ var positions;
 var cad = (value, currency, conversion) =>
   value / (currency === 'USD' ? conversion : 1);
 
+var round2Decimals = x => Math.round(x * 100) / 100;
+
+// https://stackoverflow.com/a/2901298/188740
+var numberWithCommas = x => {
+    var parts = round2Decimals(x).toString().split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.join(".");
+};
+
 chrome.tabs.query({active: true, currentWindow: true}, tabs =>
   chrome.tabs.executeScript(tabs[0].id, { file: 'contentScript.js' }));
 
@@ -42,7 +51,7 @@ var renderAllocations = (positions, mappings, conversion) => {
 
   document.querySelector(`[data-outlet="allocations"]`).innerHTML = allocationsTemplate({
     allocations: allocations
-      .map(a => ({ category: a.category, value: '$' + a.value.toFixed(2), percentage: ((a.value / total) * 100).toFixed(1) + '%' }))
+      .map(a => ({ category: a.category, value: a.value, percentage: (a.value / total) * 100 }))
       .sort((a, b) => b.value - a.value)
   });
 }
