@@ -1,4 +1,6 @@
-var PORTFOLIO = (function(){
+var PINSIGHT = window.PINSIGHT || {};
+
+PINSIGHT.popup = (function(){
   var noPositionsTemplate = _.template(document.querySelector('#no-positions').innerHTML);
   var positionsTemplate = _.template(document.querySelector('#positions').innerHTML);
   var conversionTemplate = _.template(document.querySelector('#conversion').innerHTML);

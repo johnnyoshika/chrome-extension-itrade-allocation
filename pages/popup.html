@@ -36,7 +36,7 @@
         <% _.each(positions, function(p) { %>
           <tr>
             <td><%- p.symbol %></td>
-            <td>$<%- PORTFOLIO.formatValue(p.value) %></td>
+            <td>$<%- PINSIGHT.popup.formatValue(p.value) %></td>
             <td><%- p.currency %></td>
           </tr>
         <% }); %>
@@ -61,7 +61,7 @@
         <% _.each(allocations, function(a) { %>
           <tr>
             <td><%- a.category %></td>
-            <td>$<%- PORTFOLIO.formatValue(a.value) %></td>
+            <td>$<%- PINSIGHT.popup.formatValue(a.value) %></td>
             <td><%- a.percentage.toFixed(1) %>%</td>
           </tr>
         <% }); %>

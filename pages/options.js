@@ -1,5 +1,6 @@
-var PORTFOLIO = (function(){
+var PINSIGHT = window.PINSIGHT || {};
 
+PINSIGHT.options = (function(){
   var noMappingsTemplate = _.template(document.querySelector('#no-mappings').innerHTML);
   var mappingsTemplate = _.template(document.querySelector('#mappings').innerHTML);
   var mapTemplate = _.template(document.querySelector('#map').innerHTML);
