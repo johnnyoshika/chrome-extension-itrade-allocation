@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <th>Symbol</th>
+      <th>Value</th>
+      <th>Currency</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each this}}
+      <tr>
+        <td>{{symbol}}</td>
+        <td>${{value}}</td>
+        <td>{{currency}}</td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>

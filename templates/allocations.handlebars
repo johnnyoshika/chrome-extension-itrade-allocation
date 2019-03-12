@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <th>Category</th>
+      <th>Value</th>
+      <th>Percentage</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each this}}
+      <tr>
+        <td>{{category}}</td>
+        <td>${{value}}</td>
+        <td>{{percentage}}%</td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>

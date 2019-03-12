@@ -12,43 +12,8 @@
   <div data-outlet="conversion"></div>
   <div data-outlet="conversion-edit"></div>
 
-  <script id="no-mappings" type="text/html">
-    <div>No mappings found.</div>
-  </script>
-
-  <script id="mappings" type="text/html">
-    <table>
-        <thead>
-          <tr>
-            <th>Symbol</th>
-            <th>Category</th>
-            <th>Remove</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% _.each(mappings, function(m) { %>
-            <tr data-symbol="<%- m.symbol %>">
-                <td><%- m.symbol %></td>
-                <td><%- m.category %></td>
-                <td><a data-action="delete" href="javascript:void(0);">X</td>
-              </tr>      
-          <% }); %>
-        </tbody>
-      </table>
-  </script>
-
-  <script id="map" type="text/html">
-    <input name="symbol" placeholder="Symbol" value="" /> maps to <input name="category" placeholder="Category" value="" />
-  </script>
-
-  <script id="conversion" type="text/html">
-    USD/CAD: <strong><%- conversion %></strong>
-  </script>
-
-  <script id="conversion-edit" type="text/html">
-    <input name="conversion" placeholder="USD/CAD" value="<%- conversion %>" />
-  </script>
-
+  <script src="/libs/handlebars.runtime-v4.1.0.js"></script>
+  <script src="/pages/templates.js"></script>
   <script src="/libs/underscore-min.js"></script>
   <script src="/pages/options.js"></script>
 </body>

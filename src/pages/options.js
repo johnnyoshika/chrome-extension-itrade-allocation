@@ -1,27 +1,21 @@
 var PINSIGHT = window.PINSIGHT || {};
 
 PINSIGHT.options = (function(){
-  var noMappingsTemplate = _.template(document.querySelector('#no-mappings').innerHTML);
-  var mappingsTemplate = _.template(document.querySelector('#mappings').innerHTML);
-  var mapTemplate = _.template(document.querySelector('#map').innerHTML);
-  var conversionTemplate = _.template(document.querySelector('#conversion').innerHTML);
-  var conversionEditTemplate = _.template(document.querySelector('#conversion-edit').innerHTML);
-  
   var renderMappings = mappings =>
     mappings.length
-      ? document.querySelector(`[data-outlet="mappings"]`).innerHTML = mappingsTemplate({ mappings: mappings })
-      : document.querySelector(`[data-outlet="mappings"]`).innerHTML = noMappingsTemplate();
+      ? document.querySelector(`[data-outlet="mappings"]`).innerHTML = Handlebars.templates.mappings(mappings)
+      : document.querySelector(`[data-outlet="mappings"]`).innerHTML = Handlebars.templates.mappingsNone();
   
   var renderMap = () => {
-    document.querySelector('[data-outlet="map"]').innerHTML = mapTemplate();
+    document.querySelector('[data-outlet="map"]').innerHTML = Handlebars.templates.map();
     document.querySelector('input').focus();
   }
   
   var renderConversion = conversion =>
-    document.querySelector('[data-outlet="conversion"]').innerHTML = conversionTemplate({conversion: conversion});
+    document.querySelector('[data-outlet="conversion"]').innerHTML = Handlebars.templates.conversion({conversion: conversion});
   
   var renderEditConversion = () =>
-    document.querySelector('[data-outlet="conversion-edit"]').innerHTML = conversionEditTemplate({conversion: ''});
+    document.querySelector('[data-outlet="conversion-edit"]').innerHTML = Handlebars.templates.conversionEdit({conversion: ''});
   
   chrome.storage.sync.get('mappings', data =>
     (data.mappings = data.mappings || []) && renderMappings(data.mappings));

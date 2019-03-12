@@ -19,56 +19,8 @@
     <div data-outlet="allocations"></div>
   </div>
   
-  <script id="no-positions" type="text/html">
-    <div>No positions found.</div>
-  </script>
-
-  <script id="positions" type="text/html">
-    <table>
-      <thead>
-        <tr>
-          <th>Symbol</th>
-          <th>Value</th>
-          <th>Currency</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% _.each(positions, function(p) { %>
-          <tr>
-            <td><%- p.symbol %></td>
-            <td>$<%- PINSIGHT.popup.formatValue(p.value) %></td>
-            <td><%- p.currency %></td>
-          </tr>
-        <% }); %>
-      </tbody>
-    </table>
-  </script>
-
-  <script id="conversion" type="text/html">
-    USD/CAD: <strong><%- conversion %></strong>
-  </script>
-
-  <script id="allocations" type="text/html">
-    <table>
-      <thead>
-        <tr>
-          <th>Category</th>
-          <th>Value</th>
-          <th>Percentage</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% _.each(allocations, function(a) { %>
-          <tr>
-            <td><%- a.category %></td>
-            <td>$<%- PINSIGHT.popup.formatValue(a.value) %></td>
-            <td><%- a.percentage.toFixed(1) %>%</td>
-          </tr>
-        <% }); %>
-      </tbody>
-    </table>
-  </script>
-
+  <script src="/libs/handlebars.runtime-v4.1.0.js"></script>
+  <script src="/pages/templates.js"></script>
   <script src="/libs/underscore-min.js"></script>
   <script src="/pages/popup.js"></script>
 </body>

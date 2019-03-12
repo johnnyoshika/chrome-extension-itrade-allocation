@@ -1,10 +1,6 @@
 var PINSIGHT = window.PINSIGHT || {};
 
 PINSIGHT.popup = (function(){
-  var noPositionsTemplate = _.template(document.querySelector('#no-positions').innerHTML);
-  var positionsTemplate = _.template(document.querySelector('#positions').innerHTML);
-  var conversionTemplate = _.template(document.querySelector('#conversion').innerHTML);
-  var allocationsTemplate = _.template(document.querySelector('#allocations').innerHTML);
   var positions;
 
   var cad = (value, currency, conversion) =>
@@ -24,15 +20,18 @@ PINSIGHT.popup = (function(){
 
   var renderPortfolio = (type, positions) =>
     positions.length
-      ? document.querySelector(`[data-outlet="${type}"]`).innerHTML = positionsTemplate({ positions: positions })
-      : document.querySelector(`[data-outlet="${type}"]`).innerHTML = noPositionsTemplate();
+      ? document.querySelector(`[data-outlet="${type}"]`).innerHTML = Handlebars.templates.positions(positions.map(p => ({
+          symbol: p.symbol,
+          value: formatValue(p.value),
+          currency: p.currency })))
+      : document.querySelector(`[data-outlet="${type}"]`).innerHTML = Handlebars.templates.positionsNone();
 
   var renderConversion = conversion =>
-    document.querySelector(`[data-outlet="conversion"]`).innerHTML = conversionTemplate({ conversion: conversion });
+    document.querySelector(`[data-outlet="conversion"]`).innerHTML = Handlebars.templates.conversion({ conversion: conversion });
 
   var renderAllocations = (positions, mappings, conversion) => {
     if (!positions.length) {
-      document.querySelector(`[data-outlet="allocations"]`).innerHTML = noPositionsTemplate();
+      document.querySelector(`[data-outlet="allocations"]`).innerHTML = Handlebars.templates.positionsNone();
       return;
     }
 
@@ -52,11 +51,11 @@ PINSIGHT.popup = (function(){
 
     var total = allocations.reduce((sum, a) => sum + a.value, 0);
 
-    document.querySelector(`[data-outlet="allocations"]`).innerHTML = allocationsTemplate({
-      allocations: allocations
-        .map(a => ({ category: a.category, value: a.value, percentage: (a.value / total) * 100 }))
+    document.querySelector(`[data-outlet="allocations"]`).innerHTML = Handlebars.templates.allocations(
+      allocations
         .sort((a, b) => b.value - a.value)
-    });
+        .map(a => ({ category: a.category, value: formatValue(a.value), percentage: ((a.value / total) * 100).toFixed(1) }))
+    );
   }
 
   chrome.runtime.onMessage.addListener(request => {
@@ -101,8 +100,4 @@ PINSIGHT.popup = (function(){
   }, false);
 
   render();
-
-  return {
-    formatValue: formatValue
-  };
 }());
