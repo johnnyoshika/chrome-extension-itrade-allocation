@@ -1,9 +1,12 @@
 # Scotia iTrade Portfolio Allocation Calculator
 Chrome extension for calculating Scotia iTrade Portfolio Allocation across multiple portfolios
 
-## Installation
+## Running
+* `http-server ./src`
+
+## Testing
 * Go to [chrome://extensions/](chrome://extensions/)
-* Click `Load unpacked` and select the project folder
+* Click `Load unpacked` and select the `./src` folder
 
 ## Use
 * Log in to Scotia iTrade.
