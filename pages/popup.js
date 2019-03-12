@@ -18,7 +18,7 @@ var PORTFOLIO = (function(){
   };
 
   chrome.tabs.query({active: true, currentWindow: true}, tabs =>
-    chrome.tabs.executeScript(tabs[0].id, { file: 'contentScript.js' }));
+    chrome.tabs.executeScript(tabs[0].id, { file: '/contents/scotia-itrade.js' }));
 
   var renderPortfolio = (type, positions) =>
     positions.length
@@ -77,7 +77,7 @@ var PORTFOLIO = (function(){
   chrome.storage.onChanged.addListener((changes, namespace) => render());
 
   document.querySelector('#mappings').addEventListener('click', e => {
-    chrome.tabs.create({ url: chrome.runtime.getURL('options.html') });
+    chrome.tabs.create({ url: chrome.runtime.getURL('pages/options.html') });
   });
     
   document.querySelector('#add').addEventListener('click', e => {
