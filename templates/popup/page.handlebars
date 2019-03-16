@@ -1,0 +1,16 @@
+<div class="card mb-4">
+    {{#if found}}
+        <div class="card-header">
+            Positions found on this page
+        </div>
+    {{/if}}
+    <div class="card-body">
+        {{#unless found}}
+            <div>No positions found on this page &#x2639;</div>
+        {{/unless}}
+        <div data-outlet="account"></div>
+        {{#if found}}
+            <button type="button" class="btn btn-primary btn-sm btn-block"><i class="fas fa-plus"></i> Add to Portfolio</button>
+        {{/if}}
+    </div>
+</div>
