@@ -1,0 +1,25 @@
+<div class="card mb-4">
+    <div class="card-header">
+        Portfolio Allocations
+    </div>
+    <div class="card-body">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th scope="col">Category</th>
+                    <th scope="col">Value</th>
+                    <th scope="col">% Portfolio</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each this}}
+                <tr>
+                    <td>{{category}}</td>
+                    <td>${{value}}</td>
+                    <td>{{percentage}}%</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</div>
