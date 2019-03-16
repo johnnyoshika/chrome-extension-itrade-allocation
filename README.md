@@ -4,7 +4,11 @@ Chrome extension for calculating Scotia iTrade Portfolio Allocation across multi
 ## Development
 * To adhere to Chrome's strict CSP, we need to pre-compile templates
 * Install handlebars version 4.1.0: `npm install -g handlebars@4.1.0`
-* Compile: `handlebars ./templates  -f ./src/pages/templates.js`
+* Compile once:
+  * `handlebars ./templates  -f ./src/pages/templates.js`
+* Watch and compile:
+  * Install handlebars-watch: `npm install -g handlebars-watch`
+  * Run: `handlebars-watch -c ./hbw-config.json`
 
 ## Testing
 * Go to [chrome://extensions/](chrome://extensions/)

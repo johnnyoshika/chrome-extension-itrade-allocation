@@ -1,0 +1,4 @@
+[{
+  "path": "./templates",
+  "command": "handlebars ./templates -f ./src/pages/templates.js"
+}]
