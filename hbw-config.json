@@ -1,4 +1,7 @@
 [{
   "path": "./templates/dashboard",
   "command": "handlebars ./templates/dashboard -f ./src/pages/dashboard-templates.js"
+},{
+  "path": "./templates/popup",
+  "command": "handlebars ./templates/popup -f ./src/pages/popup-templates.js"
 }]

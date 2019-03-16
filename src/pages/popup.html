@@ -1,27 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="/libs/fontawesome-5.7.2.all.min.css">
+    <link rel="stylesheet" href="/libs/bootstrap.min.css">
+    <link rel="stylesheet" href="/pages/styles.css">
 </head>
 <body>
-  <div>
-    <div>
-      <a id="mappings" href="" target="_blank">Mappings</a>
-    </div>
-    <h3>This Account</h3>
-    <div data-outlet="account"></div>
-    <h3>Actions</h3>
-    <button id="add">Add to Total</button> <button id="reset">Reset Total</button>
-    <h3>Total</h3>
-    <div data-outlet="total"></div>
-    <h3>Conversion</h3>
-    <div data-outlet="conversion"></div>
-    <h3>Allocations</h3>
-    <div data-outlet="allocations"></div>
-  </div>
-  
-  <script src="/libs/handlebars.runtime-v4.1.0.js"></script>
-  <script src="/pages/templates.js"></script>
-  <script src="/libs/underscore-min.js"></script>
-  <script src="/pages/popup.js"></script>
+    <div class="container" data-outlet="dashboard"></div>
+    <script src="/libs/jquery-3.3.1.min.js"></script>
+    <script src="/libs/popper.min.js"></script>
+    <script src="/libs/bootstrap.min.js"></script>
+    <script src="/libs/underscore-min.js"></script>
+    <script src="/libs/backbone-min.js"></script>
+    <script src="/libs/handlebars.runtime-v4.1.0.js"></script>
+    <script src="/pages/popup-templates.js"></script>
+    <script src="/pages/popup.js"></script>
 </body>
 </html>
