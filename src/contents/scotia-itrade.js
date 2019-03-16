@@ -30,4 +30,11 @@ document.querySelectorAll('[id$="j_id709"]')
       })
   );
 
-chrome.runtime.sendMessage({positions: positions});
+var portfolio = document.querySelector('.branding-header').querySelector('h3[title]').textContent;
+
+chrome.runtime.sendMessage({
+    page: {
+        id: portfolio,
+        name: portfolio,
+        positions: positions
+    }});

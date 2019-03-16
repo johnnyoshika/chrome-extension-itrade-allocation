@@ -207,10 +207,7 @@ PINSIGHT.popup = (function () {
         model: popup
     }).render().el);
 
-    chrome.runtime.onMessage.addListener(request => {
-        request.positions
-            && popup.set('page', new Account({ id: '3', name: 'Margin Jane', positions: request.positions }));
-    });
+    chrome.runtime.onMessage.addListener(request => request.page && popup.set('page', new Account(request.page)));
 
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
         var tab = tabs[0];
