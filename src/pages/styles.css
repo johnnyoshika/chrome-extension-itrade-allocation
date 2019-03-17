@@ -1,3 +1,7 @@
 a:link {
   text-decoration: none;
 }
+
+.popup {
+  min-width: 300px;
+}
