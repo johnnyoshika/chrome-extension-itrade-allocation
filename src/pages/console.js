@@ -159,7 +159,10 @@ PINSIGHT.console = (function () {
 
     var Portfolio = Backbone.Model.extend({
         defaults: {
-            allocations: []
+            allocations: {
+                items: [],
+                total: 0
+            }
         },
 
         initialize: function (attributes, options) {
@@ -196,10 +199,14 @@ PINSIGHT.console = (function () {
                 }, []);
 
             var total = allocations.reduce((sum, a) => sum + a.value, 0);
-
-            this.set('allocations', allocations
+            allocations = allocations
                 .sort((a, b) => b.value - a.value)
-                .map(a => ({ category: a.category, value: formatValue(a.value), percentage: ((a.value / total) * 100).toFixed(1) })));
+                .map(a => ({ category: a.category, value: formatValue(a.value), percentage: ((a.value / total) * 100).toFixed(1) }));
+
+            this.set('allocations', {
+                items: allocations,
+                total: formatValue(total)
+            });
         }
     });
 

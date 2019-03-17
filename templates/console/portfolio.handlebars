@@ -3,7 +3,7 @@
         Portfolio Allocations
     </div>
     <div class="card-body">
-        {{#if this.length}}
+        {{#if items.length}}
             <table class="table table-sm">
                 <thead>
                     <tr>
@@ -13,7 +13,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {{#each this}}
+                    {{#each items}}
                     <tr>
                         <td>{{category}}</td>
                         <td>${{value}}</td>
@@ -21,6 +21,13 @@
                     </tr>
                     {{/each}}
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <th>Total</th>
+                        <th>${{total}}</th>
+                        <th>100%</th>
+                    </tr>
+                </tfoot>
             </table>
         {{else}}
             <div class="text-center"><em>- empty -</em></div>
