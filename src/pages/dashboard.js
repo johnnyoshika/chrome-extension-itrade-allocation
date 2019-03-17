@@ -1,6 +1,4 @@
-var PINSIGHT = window.PINSIGHT || {};
-
-PINSIGHT.dashboard = (function () {
+(function () {
 
     // MODELS
 
@@ -385,16 +383,12 @@ PINSIGHT.dashboard = (function () {
 
     // RUN
     
-    var model = {
-        accounts: new Accounts(data.accounts),
-        currency: new Currency(data.currency),
-        mappings: new Mappings(data.mappings)
-    };
-    
     $('[data-outlet="dashboard"]').append(new DashboardView({
-        model: model
+        model: {
+            accounts: new Accounts(data.accounts),
+            currency: new Currency(data.currency),
+            mappings: new Mappings(data.mappings)
+        }
     }).render().el);
 
-    // DEBUG
-    //window.data = model;
 }());

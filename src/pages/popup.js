@@ -1,6 +1,4 @@
-var PINSIGHT = window.PINSIGHT || {};
-
-PINSIGHT.popup = (function () {
+(function () {
 
     // MODELS
 
@@ -226,12 +224,8 @@ PINSIGHT.popup = (function () {
 
     // RUN
 
-    var mediator = new Mediator();
-
     $('[data-outlet="popup"]').append(new PopupView({
-        model: mediator
+        model: new Mediator()
     }).render().el);
 
-    // DEBUG
-    //window.data = mediator;
 }());
