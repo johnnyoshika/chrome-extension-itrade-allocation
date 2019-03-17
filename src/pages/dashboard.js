@@ -534,18 +534,54 @@
 
     var MappingsView = BaseView.extend({
         template: Handlebars.templates.mappings,
+        templateAddButton: Handlebars.templates.mappingsAddButton,
+        templateAddForm: Handlebars.templates.mappingsAddForm,
 
         initialize: function () {
             this.listenTo(this.collection, 'add remove reset sort', this.render);
         },
 
+        events: {
+            'click [data-action="cancel"]': 'onCancelClick',
+            'click [data-action="add"]': 'onAddClick',
+            'submit [data-action="submit"]': 'onSubmit'
+        },
+
+        onCancelClick: function (e) {
+            e.preventDefault();
+            this.renderAddButton();
+        },
+
+        onAddClick: function () {
+            this.renderAddForm();
+        },
+
+        onSubmit: function (e) {
+            e.preventDefault();
+            this.options.mediator.addMapping(new Mapping({
+                symbol: this.$('[name="symbol"]').val(),
+                category: this.$('[name="category"]').val()
+            }));
+            this.renderAddButton();
+        },
+
+        renderAddButton: function () {
+            this.$('[data-outlet="form"]').html(this.templateAddButton());
+        },
+
+        renderAddForm: function () {
+            this.$('[data-outlet="form"]').html(this.templateAddForm());
+            this.$('input[name="symbol"]').focus();
+        },
+
         render: function () {
             this.$el.html(this.template());
+            this.renderAddButton();
 
             this.collection.forEach(mapping => {
                 this.$('[data-outlet="mapping"]').append(
                     this.addChildren(
-                        new MappingView({ model: mapping })
+                        new MappingView({model: mapping })
                     )
                     .render().el
                 );
