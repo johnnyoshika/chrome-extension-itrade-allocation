@@ -1,0 +1,1 @@
+PINSIGHT.console.dashboard();

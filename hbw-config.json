@@ -1,4 +1,4 @@
 [{
-  "path": "./templates",
-  "command": "handlebars ./templates -f ./src/pages/templates.js"
+  "path": "./templates/console",
+  "command": "handlebars ./templates/console -f ./src/pages/console-templates.js"
 }]

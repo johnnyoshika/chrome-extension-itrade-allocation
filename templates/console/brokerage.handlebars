@@ -1,0 +1,21 @@
+<div class="card my-4">
+    {{#if found}}
+        <div class="card-header">
+            <div class="float-right"><i class="fas fa-level-down-alt fa-sm"></i></div>
+            Found on this page
+        </div>
+    {{/if}}
+    <div class="card-body">
+        {{#unless found}}
+            <div>No positions found on this page &#x2639;</div>
+        {{/unless}}
+        <div data-outlet="account"></div>
+        {{#if found}}
+            {{#if exists}}
+                <button type="button" class="btn btn-primary btn-sm btn-block" data-action="add"><i class="fas fa-sync-alt"></i> Update Portfolio</button>
+            {{else}}
+                <button type="button" class="btn btn-primary btn-sm btn-block" data-action="add"><i class="fas fa-plus"></i> Add to Portfolio</button>
+            {{/if}}
+        {{/if}}
+    </div>
+</div>
