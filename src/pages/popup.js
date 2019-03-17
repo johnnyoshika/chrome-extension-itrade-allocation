@@ -32,6 +32,15 @@
             });
         },
 
+        removeAccount: function (account) {
+            // clone so that event listeners on accounts don't act on this 
+            var accounts = this.get('accounts').clone();
+            accounts.remove(account);
+            chrome.storage.sync.set({
+                accounts: accounts.toJSON()
+            });
+        },
+
         setAccounts: function (accounts) {
             this.get('accounts').set(accounts);
         }
@@ -188,18 +197,21 @@
             this.disposeAllChildren();
             this.$el.html(this.template());
 
-            this.collection.each(account => {
-                this.$('[data-outlet="account"]').append(
-                    this.addChildren(
-                        new AccountView({
-                            model: account,
-                            actionable: true,
-                            mediator: this.options.mediator
-                        })
-                    )
-                    .render().el
-                );
-            });
+            if (this.collection.length) {
+                this.$('[data-outlet="account"]').empty();
+                this.collection.each(account => {
+                    this.$('[data-outlet="account"]').append(
+                        this.addChildren(
+                            new AccountView({
+                                model: account,
+                                actionable: true,
+                                mediator: this.options.mediator
+                            })
+                        )
+                        .render().el
+                    );
+                });
+            }
 
             return this;
         }
@@ -210,6 +222,15 @@
 
         initialize: function () {
             this.listenTo(this.model, 'change', this.render);
+        },
+
+        events: {
+            'click [data-action="remove"]': 'onRemoveClick'
+        },
+
+        onRemoveClick: function (e) {
+            e.preventDefault();
+            this.options.mediator.removeAccount(this.model);
         },
 
         render: function () {
