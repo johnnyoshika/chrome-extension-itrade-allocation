@@ -4,7 +4,39 @@ PINSIGHT.popup = (function () {
 
     // MODELS
 
-    var Popup = Backbone.Model.extend({
+    var Mediator = Backbone.Model.extend({
+        initialize: function () {
+            this.set('accounts', new Accounts([]));
+
+            chrome.storage.sync.get('accounts', data =>
+                (data.accounts = data.accounts || []) && this.setAccounts(data.accounts));
+
+            chrome.storage.onChanged.addListener((changes, namespace) =>
+                changes.accounts && this.setAccounts(changes.accounts.newValue));
+
+            chrome.runtime.onMessage.addListener(request =>
+                request.page
+                    && this.set('page', new Account(request.page)));
+
+            chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+                var tab = tabs[0];
+                if (tab.url.startsWith('https://www.scotiaonline.scotiabank.com/online/views/accounts/accountDetails/'))
+                    chrome.tabs.executeScript(tab.id, { file: '/contents/scotia-itrade.js' });
+            });
+        },
+
+        addAccount: function (account) {
+            // clone so that event listeners on accounts don't act on this 
+            var accounts = this.get('accounts').clone();
+            accounts.add(account, { merge: true, at: 0 });
+            chrome.storage.sync.set({
+                accounts: accounts.toJSON()
+            });
+        },
+
+        setAccounts: function (accounts) {
+            this.get('accounts').set(accounts);
+        }
     });
 
     var Account = Backbone.Model.extend({
@@ -100,7 +132,10 @@ PINSIGHT.popup = (function () {
 
             this.$('[data-outlet="accounts"]').append(
               this.addChildren(
-                new AccountsView({ collection: this.model.get('accounts') })
+                new AccountsView({
+                    collection: this.model.get('accounts'),
+                    mediator: this.model
+                })
               )
               .render().el
             );
@@ -114,11 +149,23 @@ PINSIGHT.popup = (function () {
 
         initialize: function () {
             this.listenTo(this.model, 'change:page', this.render);
+            this.listenTo(this.model.get('accounts'), 'add remove reset', this.render);
+        },
+
+        events: {
+            'click [data-action="add"]': 'onAddClick'
+        },
+
+        onAddClick: function (e) {
+            this.model.addAccount(this.model.get('page'));
         },
 
         render: function () {
             this.disposeAllChildren();
-            this.$el.html(this.template({ found: !!this.model.get('page') }));
+            this.$el.html(this.template({
+                found: !!this.model.get('page'),
+                exists: !!this.model.get('accounts').get(this.model.get('page') && this.model.get('page').id)
+            }));
 
             if (this.model.get('page'))
                 this.$('[data-outlet="account"]').append(
@@ -135,7 +182,7 @@ PINSIGHT.popup = (function () {
     var AccountsView = BaseView.extend({
         template: Handlebars.templates.accounts,
 
-        initialize: function () {
+        initialize: function (options) {
             this.listenTo(this.collection, 'add remove reset sort', this.render);
         },
 
@@ -148,7 +195,8 @@ PINSIGHT.popup = (function () {
                     this.addChildren(
                         new AccountView({
                             model: account,
-                            actionable: true
+                            actionable: true,
+                            mediator: this.options.mediator
                         })
                     )
                     .render().el
@@ -176,46 +224,14 @@ PINSIGHT.popup = (function () {
         }
     });
 
-    // TEST
-
-    var data = {
-        accounts: [{
-            id: '1',
-            name: 'RRSP Jane',
-            positions: [
-              { symbol: 'VFV', value: 123, currency: 'USD' },
-              { symbol: 'XIC', value: 123, currency: 'CAD' }
-            ]
-        },
-        {
-            id: '2',
-            name: 'TFSA Jane',
-            positions: [
-              { symbol: 'VFV', value: 123, currency: 'USD' },
-              { symbol: 'XIC', value: 123, currency: 'CAD' }
-            ]
-        }]
-    };
-
     // RUN
 
-    var popup = new Popup({
-        page: null,
-        accounts: new Accounts(data.accounts)
-    });
+    var mediator = new Mediator();
 
     $('[data-outlet="popup"]').append(new PopupView({
-        model: popup
+        model: mediator
     }).render().el);
 
-    chrome.runtime.onMessage.addListener(request => request.page && popup.set('page', new Account(request.page)));
-
-    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-        var tab = tabs[0];
-        if (tab.url.startsWith('https://www.scotiaonline.scotiabank.com/online/views/accounts/accountDetails/'))
-            chrome.tabs.executeScript(tab.id, { file: '/contents/scotia-itrade.js' });
-    });
-
     // DEBUG
-    window.data = popup;
+    //window.data = mediator;
 }());
