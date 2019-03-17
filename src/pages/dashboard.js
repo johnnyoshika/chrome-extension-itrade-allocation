@@ -2,6 +2,8 @@
 
     // HELPERS
 
+    var parseValue = text => text && parseFloat(text.replace(/,/g, ''));
+
     // https://stackoverflow.com/a/2901298/188740
     var formatValue = function (x) {
         var round2Decimals = x => Math.round(x * 100) / 100;
@@ -388,6 +390,8 @@
         template: Handlebars.templates.currency,
         templateBaseDetails: Handlebars.templates.currencyBaseDetails,
         templateBaseEdit: Handlebars.templates.currencyBaseEdit,
+        templateConversionAddButton: Handlebars.templates.currencyConversionAddButton,
+        templateConversionAddForm: Handlebars.templates.currencyConversionAddForm,
 
         initialize: function () {
             this.listenTo(this.model, 'change:base', this.onBaseChange);
@@ -396,7 +400,10 @@
         events: {
             'click [data-action="edit-base-cancel"]': 'onEditBaseCancelClick',
             'click [data-action="edit-base"]': 'onEditBaseClick',
-            'submit [data-action="submit-base"]': 'onSubmitBase'
+            'submit [data-action="submit-base"]': 'onSubmitBase',
+            'click [data-action="add-conversion-cancel"]': 'onAddConversionCancelClick',
+            'click [data-action="add-conversion"]': 'onAddConversionClick',
+            'submit [data-action="submit-conversion"]': 'onSubmitConversion'
         },
         
         onEditBaseCancelClick: function (e) {
@@ -415,6 +422,24 @@
             this.renderBaseDetails();
         },
 
+        onAddConversionCancelClick: function(e) {
+            e.preventDefault();
+            this.renderConversionAddButton();
+        },
+
+        onAddConversionClick: function() {
+            this.renderConversionAddForm();
+        },
+
+        onSubmitConversion: function(e) {
+            e.preventDefault();
+            this.options.mediator.addConversion(new Conversion({
+                symbol: this.$('[name="symbol"]').val(),
+                value: parseValue(this.$('[name="value"]').val())
+            }));
+            this.renderConversionAddButton();
+        },
+
         onBaseChange: function() {
             this.renderBaseDetails();
         },
@@ -425,12 +450,22 @@
 
         renderBaseEdit: function () {
             this.$('[data-outlet="base"]').html(this.templateBaseEdit(this.model.toJSON()));
-            this.$('input').first().focus();
+            this.$('input[name="base"]').focus();
+        },
+
+        renderConversionAddButton: function() {
+            this.$('[data-outlet="conversion-form"]').html(this.templateConversionAddButton());
+        },
+
+        renderConversionAddForm: function() {
+            this.$('[data-outlet="conversion-form"]').html(this.templateConversionAddForm());
+            this.$('input[name="symbol"]').focus();
         },
 
         render: function () {
             this.$el.html(this.template(this.model.toJSON()));
             this.renderBaseDetails();
+            this.renderConversionAddButton();
 
             this.$('[data-outlet="conversions"]').append(
                 this.addChildren(
