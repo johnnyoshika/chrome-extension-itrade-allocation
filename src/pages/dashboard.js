@@ -1,5 +1,15 @@
 (function () {
 
+    // HELPERS
+
+    // https://stackoverflow.com/a/2901298/188740
+    var formatValue = function (x) {
+        var round2Decimals = x => Math.round(x * 100) / 100;
+        var parts = round2Decimals(x).toString().split(".");
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return parts.join(".");
+    };
+
     // MODELS
 
     var Mediator = Backbone.Model.extend({
@@ -138,14 +148,6 @@
             this.calculate();
         },
 
-        // https://stackoverflow.com/a/2901298/188740
-        formatValue: function (x) {
-            var round2Decimals = x => Math.round(x * 100) / 100;
-            var parts = round2Decimals(x).toString().split(".");
-            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-            return parts.join(".");
-        },
-
         convertValue: function (value, currency, conversions) {
             var conversion = conversions.find(c => c.symbol == currency) || { value: 1 };
             return value / conversion.value;
@@ -177,7 +179,7 @@
 
             this.set('allocations', allocations
                 .sort((a, b) => b.value - a.value)
-                .map(a => ({ category: a.category, value: this.formatValue(a.value), percentage: ((a.value / total) * 100).toFixed(1) })));
+                .map(a => ({ category: a.category, value: formatValue(a.value), percentage: ((a.value / total) * 100).toFixed(1) })));
         }
     });
 
@@ -378,7 +380,13 @@
         },
 
         render: function () {
-            this.$el.html(this.template(this.model.toJSON()));
+            var json = this.model.toJSON();
+            json.positions = json.positions.map(p => ({
+                symbol: p.symbol,
+                value: formatValue(p.value),
+                currency: p.currency
+            }));
+            this.$el.html(this.template(json));
             this.toggle();
             return this;
         }

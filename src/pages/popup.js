@@ -1,5 +1,15 @@
 (function () {
 
+    // HELPERS
+
+    // https://stackoverflow.com/a/2901298/188740
+    var formatValue = function (x) {
+        var round2Decimals = x => Math.round(x * 100) / 100;
+        var parts = round2Decimals(x).toString().split(".");
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return parts.join(".");
+    };
+
     // MODELS
 
     var Mediator = Backbone.Model.extend({
@@ -291,9 +301,16 @@
         },
 
         render: function () {
+            var json = this.model.toJSON();
+            json.positions = json.positions.map(p => ({
+                symbol: p.symbol,
+                value: formatValue(p.value),
+                currency: p.currency
+            }));
+            this.$el.html(this.template(json));
             this.$el.html(this.template({
                 actionable: this.options.actionable,
-                account: this.model.toJSON()
+                account: json
             }));
             this.toggle();
             return this;
