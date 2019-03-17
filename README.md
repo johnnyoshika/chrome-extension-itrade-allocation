@@ -5,6 +5,7 @@ Chrome extension for calculating portfolio allocations across multiple brokerage
 
 ## Supported Brokerages:
 
+* Questrade
 * Scotia iTrade
 
 ## Development

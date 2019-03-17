@@ -42,6 +42,10 @@ PINSIGHT.console = (function () {
                     var tab = tabs[0];
                     if (tab.url.startsWith('https://www.scotiaonline.scotiabank.com/online/views/accounts/accountDetails/'))
                         chrome.tabs.executeScript(tab.id, { file: '/contents/scotia-itrade.js' });
+                    else if (tab.url.startsWith('https://my.questrade.com/trading/account/positions'))
+                        chrome.tabs.executeScript(null, { file: "/libs/jquery-3.3.1.min.js" }, function () {
+                            chrome.tabs.executeScript(null, { file: "/contents/questrade.js" });
+                        });
                 });
             }
         },
