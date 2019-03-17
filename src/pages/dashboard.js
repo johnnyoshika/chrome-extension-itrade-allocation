@@ -2,6 +2,99 @@
 
     // MODELS
 
+    var Mediator = Backbone.Model.extend({
+        initialize: function () {
+            this.set('accounts', new Accounts([]));
+            this.set('currency', new Currency([]));
+            this.set('conversions', new Conversions([]));
+            this.set('mappings', new Mappings([]));
+
+            chrome.storage.sync.get(['accounts', 'currency', 'conversions', 'mappings'], data => this._setValues(data));
+
+            chrome.storage.onChanged.addListener((changes, namespace) =>
+                this._setValues(['accounts', 'currency', 'conversions', 'mappings'].reduce((accumulator, n) => {
+                    accumulator[n] = changes[n] && changes[n].newValue;
+                    return accumulator;
+                }, {}))
+            );
+        },
+
+        _storeCollection: function(collection, collectionName) {
+            var obj = {};
+            obj[collectionName] = collection.toJSON();
+            chrome.storage.sync.set(obj);
+        },
+
+        _storeModel: function(model, modelName) {
+            var obj = {};
+            obj[modelName] = model.toJSON();
+            chrome.storage.sync.set(obj);
+        },
+
+        _addModelInCollection: function (model, collectionName) {
+            // clone so that event listeners on collections don't act on this
+            var collection = this.get(collectionName).clone();
+            collection.add(model, { merge: true });
+            this._storeCollection(collection, collectionName);
+        },
+
+        _updateModelInCollection: function(model, collectionName, changes) {
+            // clone so that event listeners on collections don't act on this
+            var clone = model.clone();
+            clone.set(changes);
+            var collection = this.get(collectionName).clone();
+            collection.add(clone, { merge: true });
+            this._storeCollection(collection, collectionName);
+        },
+
+        _removeModelInCollection: function(model, collectionName) {
+            // clone so that event listeners on collections don't act on this
+            var collection = this.get(collectionName).clone();
+            collection.remove(model);
+            this._storeCollection(collection, collectionName);
+        },
+
+        _updateModel: function (model, modelName, changes) {
+            // clone so that event listeners on model don't act on this 
+            var clone = model.clone();
+            clone.set(changes);
+            this._storeModel(clone, modelName);
+        },
+
+        updateAccount: function (account, changes) {
+            this._updateModelInCollection(account, 'accounts', changes);
+        },
+
+        removeAccount: function (account) {
+            this._removeModelInCollection(account, 'accounts');
+        },
+
+        updateCurrency: function (currency, changes) {
+            this._updateModel(currency, 'currency', changes);
+        },
+
+        addConversion: function (conversion) {
+            this._addModelInCollection(conversion, 'conversions');
+        },
+
+        removeConversion: function (conversion) {
+            this._removeModelInCollection(conversion, 'conversions');
+        },
+
+        addMapping: function (mapping) {
+            this._addModelInCollection(mapping, 'mappings');
+        },
+
+        removeMapping: function (mapping) {
+            this._removeModelInCollection(mapping, 'mappings');
+        },
+
+        _setValues: function (data) {
+            ['accounts', 'currency', 'conversions', 'mappings'].forEach(n => data[n] && this.get(n).set(data[n]));
+            this.trigger('calculate');
+        }
+    });
+
     var Account = Backbone.Model.extend({
     });
 
@@ -39,11 +132,10 @@
             allocations: []
         },
 
-        initialize: function (model, options) {
+        initialize: function (attributes, options) {
+            this.mediator = options.mediator;
+            this.listenTo(options.mediator, 'calculate', this.calculate);
             this.calculate();
-            model.accounts.on('all', this.calculate, this);
-            model.currency.on('all', this.calculate, this);
-            model.mappings.on('all', this.calculate, this);
         },
 
         // https://stackoverflow.com/a/2901298/188740
@@ -60,10 +152,10 @@
         },
 
         calculate: function () {
-            var baseCurrency = this.get('currency').get('base');
-            var conversions = this.get('currency').get('conversions').toJSON();
-            var mappings = this.get('mappings').toJSON();
-            var accounts = this.get('accounts').toJSON();
+            var baseCurrency = this.mediator.get('currency').get('base');
+            var conversions = this.mediator.get('conversions').toJSON();
+            var mappings = this.mediator.get('mappings').toJSON();
+            var accounts = this.mediator.get('accounts').toJSON();
             var positions = accounts.flatMap(account => account.positions);
 
             var allocations = positions
@@ -166,21 +258,31 @@
 
             this.$('[data-outlet="accounts"]').append(
               this.addChildren(
-                new AccountsView({ collection: this.model.accounts })
+                new AccountsView({
+                    collection: this.model.get('accounts'),
+                    mediator: this.model
+                })
               )
               .render().el
             );
 
             this.$('[data-outlet="currency"]').append(
               this.addChildren(
-                new CurrencyView({ model: this.model.currency })
+                new CurrencyView({
+                    model: this.model.get('currency'),
+                    conversions: this.model.get('conversions'),
+                    mediator: this.model
+                })
               )
               .render().el
             );
 
             this.$('[data-outlet="mappings"]').append(
               this.addChildren(
-                new MappingsView({ collection: this.model.mappings })
+                new MappingsView({
+                    collection: this.model.get('mappings'),
+                    mediator: this.model
+                })
               )
               .render().el
             );
@@ -188,7 +290,7 @@
             this.$('[data-outlet="portfolio"]').append(
               this.addChildren(
                 new PortfolioView({
-                    model: new Portfolio(this.model)
+                    model: new Portfolio(null, { mediator: this.model })
                 })
               )
               .render().el
@@ -209,14 +311,20 @@
             this.disposeAllChildren();
             this.$el.html(this.template());
 
-            this.collection.each(account => {
-                this.$('[data-outlet="account"]').append(
-                    this.addChildren(
-                        new AccountView({ model: account })
-                    )
-                    .render().el
-                );
-            });
+            if (this.collection.length) {
+                this.$('[data-outlet="account"]').empty();
+                this.collection.each(account => {
+                    this.$('[data-outlet="account"]').append(
+                        this.addChildren(
+                            new AccountView({
+                                model: account,
+                                mediator: this.options.mediator
+                            })
+                        )
+                        .render().el
+                    );
+                });
+            }
 
             return this;
         }
@@ -226,12 +334,52 @@
         template: Handlebars.templates.account,
 
         initialize: function () {
-            this.listenTo(this.model, 'change', this.render);
+            this.listenTo(this.model, 'change:hidden', this.onHiddenChange);
+        },
+
+        events: {
+            'click [data-action="remove"]': 'onRemoveClick',
+            'click [data-action="toggle"]': 'onToggleClick'
+        },
+
+        onRemoveClick: function (e) {
+            e.preventDefault();
+            this.options.mediator.removeAccount(this.model);
+        },
+
+        onToggleClick: function (e) {
+            e.preventDefault();
+            this.options.mediator.updateAccount(this.model, { hidden: !this.model.get('hidden') });
+        },
+
+        onHiddenChange: function () {
+            if (this.model.get('hidden'))
+                this.$('[data-element="positions"]').slideUp();
+            else
+                this.$('[data-element="positions"]').slideDown();
+
+            this.toggleChevron();
+        },
+
+        toggleChevron: function () {
+            if (this.model.get('hidden'))
+                this.$('.fa-chevron-down')
+                    .removeClass('fa-chevron-down')
+                    .addClass('fa-chevron-up');
+            else
+                this.$('.fa-chevron-up')
+                    .removeClass('fa-chevron-up')
+                    .addClass('fa-chevron-down');
+        },
+
+        toggle: function () {
+            this.$('[data-element="positions"]').toggle(!this.model.get('hidden'));
+            this.toggleChevron();
         },
 
         render: function () {
             this.$el.html(this.template(this.model.toJSON()));
-
+            this.toggle();
             return this;
         }
     });
@@ -248,7 +396,7 @@
 
             this.$('[data-outlet="conversions"]').append(
                 this.addChildren(
-                    new ConversionsView({ collection: this.model.get('conversions') })
+                    new ConversionsView({ collection: this.options.conversions })
                 )
                 .render().el
             );
@@ -348,47 +496,10 @@
         }
     });
     
-    // TEST
-
-    var data = {
-        accounts: [{
-            id: '1',
-            name: 'RRSP Jane',
-            positions: [
-              { symbol: 'VFV', value: 123, currency: 'USD' },
-              { symbol: 'XIC', value: 123, currency: 'CAD' }
-            ]
-        },
-        {
-            id: '2',
-            name: 'TFSA Jane',
-            positions: [
-              { symbol: 'VFV', value: 123, currency: 'USD' },
-              { symbol: 'XIC', value: 123, currency: 'CAD' }
-            ]
-        }],
-
-        currency: {
-            base: 'CAD',
-            conversions: [
-                { symbol: 'USD', value: 0.75 }
-            ]
-        },
-
-        mappings: [
-          { symbol: 'XIC', category: 'CAD' },
-          { symbol: 'VFV', category: 'US' }
-        ]
-    };
-
     // RUN
     
     $('[data-outlet="dashboard"]').append(new DashboardView({
-        model: {
-            accounts: new Accounts(data.accounts),
-            currency: new Currency(data.currency),
-            mappings: new Mappings(data.mappings)
-        }
+        model: new Mediator()
     }).render().el);
 
 }());
