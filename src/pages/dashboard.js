@@ -581,7 +581,10 @@
             this.collection.forEach(mapping => {
                 this.$('[data-outlet="mapping"]').append(
                     this.addChildren(
-                        new MappingView({model: mapping })
+                        new MappingView({
+                            model: mapping,
+                            mediator: this.options.mediator
+                        })
                     )
                     .render().el
                 );
@@ -594,11 +597,20 @@
     var MappingView = BaseView.extend({
         template: Handlebars.templates.mapping,
 
+        tagName: 'tr',
+
         initialize: function () {
             this.listenTo(this.model, 'change', this.render);
         },
 
-        tagName: 'tr',
+        events: {
+            'click [data-action="remove"]': 'onRemoveClick'
+        },
+
+        onRemoveClick: function (e) {
+            e.preventDefault();
+            this.options.mediator.removeMapping(this.model);
+        },
 
         render: function () {
             this.$el.html(this.template(this.model.toJSON()));
