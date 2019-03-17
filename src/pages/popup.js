@@ -23,6 +23,10 @@
             });
         },
 
+        goToDashboard: function() {
+            chrome.tabs.create({ url: chrome.runtime.getURL('pages/dashboard.html') });
+        },
+
         addAccount: function (account) {
             // clone so that event listeners on accounts don't act on this 
             var accounts = this.get('accounts').clone();
@@ -138,6 +142,14 @@
 
     var PopupView = BaseView.extend({
         template: Handlebars.templates.popup,
+
+        events: {
+            'click [data-action="go-dashboard"]': 'onGoDashboardClick'
+        },
+
+        onGoDashboardClick: function() {
+            this.model.goToDashboard();
+        },
 
         render: function () {
             this.$el.html(this.template());
