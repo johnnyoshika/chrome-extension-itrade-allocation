@@ -469,7 +469,10 @@
 
             this.$('[data-outlet="conversions"]').append(
                 this.addChildren(
-                    new ConversionsView({ collection: this.options.conversions })
+                    new ConversionsView({
+                        collection: this.options.conversions,
+                        mediator: this.options.mediator
+                    })
                 )
                 .render().el
             );
@@ -491,7 +494,10 @@
             this.collection.forEach(conversion => {
                 this.$('[data-outlet="conversion"]').append(
                     this.addChildren(
-                        new ConversionView({ model: conversion })
+                        new ConversionView({
+                            model: conversion,
+                            mediator: this.options.mediator
+                        })
                     )
                     .render().el
                 );
@@ -508,6 +514,15 @@
 
         initialize: function () {
             this.listenTo(this.model, 'change', this.render);
+        },
+
+        events: {
+            'click [data-action="remove"]': 'onRemoveClick'
+        },
+
+        onRemoveClick: function (e) {
+            e.preventDefault();
+            this.options.mediator.removeConversion(this.model);
         },
 
         render: function () {
