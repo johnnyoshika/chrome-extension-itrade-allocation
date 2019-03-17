@@ -1,25 +1,29 @@
 <div class="mb-1">
     {{#if actionable}}
-        <a href="#" class="fas fa-window-close fa-lg float-right mt-1" data-action="remove"></a><a href="#" data-action="toggle"><i class="fas fa-chevron-down fa-sm"></i> {{account.name}}</a>
+        <a href="#" class="fas fa-window-close fa-lg float-right mt-1" data-action="remove"></a><a href="#" data-action="toggle">
+            <i class="fas fa-chevron-down fa-sm"></i> {{account.name}}
+        </a>
     {{else}}
-    <strong class="text-truncate">{{account.name}}</strong>
+        <strong class="text-truncate">{{account.name}}</strong>
     {{/if}}
-</div>    
-<table class="table table-sm">
-    <thead>
-        <tr>
-            <th scope="col">Symbol</th>
-            <th scope="col">Value</th>
-            <th scope="col">Currency</th>
-        </tr>
-    </thead>
-    <tbody>
-        {{#each account.positions}}
-        <tr>
-            <td>{{symbol}}</td>
-            <td>${{value}}</td>
-            <td>{{currency}}</td>
-        </tr>
-        {{/each}}
-    </tbody>
-</table>
+</div>
+<div data-element="positions">
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th scope="col">Symbol</th>
+                <th scope="col">Value</th>
+                <th scope="col">Currency</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each account.positions}}
+            <tr>
+                <td>{{symbol}}</td>
+                <td>${{value}}</td>
+                <td>{{currency}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>

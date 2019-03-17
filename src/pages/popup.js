@@ -41,12 +41,26 @@
             });
         },
 
+        updateAccount: function (account, changes) {
+            // clone so that event listeners on accounts don't act on this 
+            var clone = account.clone();
+            clone.set(changes);
+            var accounts = this.get('accounts').clone();
+            accounts.add(clone, { merge: true });
+            chrome.storage.sync.set({
+                accounts: accounts.toJSON()
+            });
+        },
+
         setAccounts: function (accounts) {
             this.get('accounts').set(accounts);
         }
     });
 
     var Account = Backbone.Model.extend({
+        defaults: {
+            hidden: false
+        }
     });
 
     var Accounts = Backbone.Collection.extend({
@@ -221,11 +235,12 @@
         template: Handlebars.templates.account,
 
         initialize: function () {
-            this.listenTo(this.model, 'change', this.render);
+            this.listenTo(this.model, 'change:hidden', this.onHiddenChange);
         },
 
         events: {
-            'click [data-action="remove"]': 'onRemoveClick'
+            'click [data-action="remove"]': 'onRemoveClick',
+            'click [data-action="toggle"]': 'onToggleClick'
         },
 
         onRemoveClick: function (e) {
@@ -233,12 +248,42 @@
             this.options.mediator.removeAccount(this.model);
         },
 
+        onToggleClick: function(e) {
+            e.preventDefault();
+            this.options.mediator.updateAccount(this.model, { hidden: !this.model.get('hidden') });
+        },
+
+        onHiddenChange: function() {
+            if (this.model.get('hidden'))
+                this.$('[data-element="positions"]').slideUp();
+            else
+                this.$('[data-element="positions"]').slideDown();
+
+            this.toggleChevron();
+        },
+
+        toggleChevron: function() {
+            if (this.model.get('hidden'))
+                this.$('.fa-chevron-down')
+                    .removeClass('fa-chevron-down')
+                    .addClass('fa-chevron-up');
+            else
+                this.$('.fa-chevron-up')
+                    .removeClass('fa-chevron-up')
+                    .addClass('fa-chevron-down');
+        },
+
+        toggle: function() {
+            this.$('[data-element="positions"]').toggle(!this.model.get('hidden'));
+            this.toggleChevron();
+        },
+
         render: function () {
             this.$el.html(this.template({
                 actionable: this.options.actionable,
                 account: this.model.toJSON()
             }));
-
+            this.toggle();
             return this;
         }
     });
