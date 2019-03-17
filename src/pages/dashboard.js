@@ -96,6 +96,7 @@ PINSIGHT.dashboard = (function () {
     var BaseView = function (options) {
         this.parent = null;
         this.children = [];
+        this.options = options; // as of Backbone 1.1.0, options are no longer automatically attached: https://github.com/jashkenas/backbone/commit/a22cbc7f36f0f7bd2b1d6f62e353e95deb4eda3a
         Backbone.View.apply(this, [options]);
     };
 
