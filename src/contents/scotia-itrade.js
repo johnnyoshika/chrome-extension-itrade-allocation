@@ -33,7 +33,7 @@ document.querySelectorAll('[id$="j_id709"]')
 var portfolio = document.querySelector('.branding-header').querySelector('h3[title]').textContent;
 
 chrome.runtime.sendMessage({
-    page: {
+    brokerage: {
         id: portfolio,
         name: portfolio,
         positions: positions
