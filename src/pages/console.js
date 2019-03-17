@@ -161,6 +161,7 @@ PINSIGHT.console = (function () {
         defaults: {
             allocations: {
                 items: [],
+                currency: null,
                 total: 0
             }
         },
@@ -205,6 +206,7 @@ PINSIGHT.console = (function () {
 
             this.set('allocations', {
                 items: allocations,
+                currency: baseCurrency,
                 total: formatValue(total)
             });
         }
