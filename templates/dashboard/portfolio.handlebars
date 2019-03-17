@@ -3,23 +3,27 @@
         Portfolio Allocations
     </div>
     <div class="card-body">
-        <table class="table table-sm">
-            <thead>
-                <tr>
-                    <th scope="col">Category</th>
-                    <th scope="col">Value</th>
-                    <th scope="col">% Portfolio</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{#each this}}
-                <tr>
-                    <td>{{category}}</td>
-                    <td>${{value}}</td>
-                    <td>{{percentage}}%</td>
-                </tr>
-                {{/each}}
-            </tbody>
-        </table>
+        {{#if this.length}}
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th scope="col">Category</th>
+                        <th scope="col">Value</th>
+                        <th scope="col">% Portfolio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each this}}
+                    <tr>
+                        <td>{{category}}</td>
+                        <td>${{value}}</td>
+                        <td>{{percentage}}%</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        {{else}}
+            <div class="text-center"><em>- empty -</em></div>
+        {{/if}}
     </div>
 </div>
