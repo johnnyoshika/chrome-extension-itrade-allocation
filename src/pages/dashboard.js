@@ -113,14 +113,6 @@
     });
 
     var Currency = Backbone.Model.extend({
-        initialize: function (model, options) {
-            this.set('conversions', new Conversions(model.conversions));
-            this.get('conversions').on('all', this.onConversionsChange, this);
-        },
-
-        onConversionsChange: function (event, obj) {
-            this.trigger(event, obj);
-        }
     });
 
     var Conversion = Backbone.Model.extend({
@@ -394,13 +386,51 @@
 
     var CurrencyView = BaseView.extend({
         template: Handlebars.templates.currency,
+        templateBaseDetails: Handlebars.templates.currencyBaseDetails,
+        templateBaseEdit: Handlebars.templates.currencyBaseEdit,
 
         initialize: function () {
-            this.listenTo(this.model, 'change', this.render);
+            this.listenTo(this.model, 'change:base', this.onBaseChange);
+        },
+        
+        events: {
+            'click [data-action="edit-base-cancel"]': 'onEditBaseCancelClick',
+            'click [data-action="edit-base"]': 'onEditBaseClick',
+            'submit [data-action="submit-base"]': 'onSubmitBase'
+        },
+        
+        onEditBaseCancelClick: function (e) {
+            e.preventDefault();
+            this.renderBaseDetails();
+        },
+
+        onEditBaseClick: function (e) {
+            e.preventDefault();
+            this.renderBaseEdit();
+        },
+        
+        onSubmitBase: function (e) {
+            e.preventDefault();
+            this.options.mediator.updateCurrency(this.model, { base: this.$('input[name="base"]').val() });
+            this.renderBaseDetails();
+        },
+
+        onBaseChange: function() {
+            this.renderBaseDetails();
+        },
+        
+        renderBaseDetails: function() {
+            this.$('[data-outlet="base"]').html(this.templateBaseDetails(this.model.toJSON()));
+        },
+
+        renderBaseEdit: function () {
+            this.$('[data-outlet="base"]').html(this.templateBaseEdit(this.model.toJSON()));
+            this.$('input').first().focus();
         },
 
         render: function () {
             this.$el.html(this.template(this.model.toJSON()));
+            this.renderBaseDetails();
 
             this.$('[data-outlet="conversions"]').append(
                 this.addChildren(
