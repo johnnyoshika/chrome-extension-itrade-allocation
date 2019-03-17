@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
-  "name": "Scotia iTrade Portfolio Allocation",
-  "description": "Calculate portfolio allocation at Scotia iTrade.",
+  "name": "Portfolio Insight",
+  "description": "Calculate portfolio allocations.",
   "version": "1.0",
   "author": "Johnny Oshika",
   "permissions": [
@@ -16,17 +16,17 @@
   "page_action": {
     "default_popup": "pages/popup.html",
     "default_icon": {
-      "16": "images/scotia16.png",
-      "32": "images/scotia32.png",
-      "48": "images/scotia48.png",
-      "128": "images/scotia128.png"
+      "16": "images/pi16.png",
+      "32": "images/pi32.png",
+      "48": "images/pi48.png",
+      "128": "images/pi128.png"
     }
   },
   "options_page": "pages/dashboard.html",
   "icons": {
-    "16": "images/scotia16.png",
-    "32": "images/scotia32.png",
-    "48": "images/scotia48.png",
-    "128": "images/scotia128.png"
+    "16": "images/pi16.png",
+    "32": "images/pi32.png",
+    "48": "images/pi48.png",
+    "128": "images/pi128.png"
   }
 }

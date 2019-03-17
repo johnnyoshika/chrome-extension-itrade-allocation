@@ -1,5 +1,11 @@
-# Scotia iTrade Portfolio Allocation Calculator
-Chrome extension for calculating Scotia iTrade Portfolio Allocation across multiple portfolios
+# Portfolio Insight
+
+## Description
+Chrome extension for calculating portfolio allocations across multiple brokerages and accounts.
+
+## Supported Brokerages:
+
+* Scotia iTrade
 
 ## Development
 * To adhere to Chrome's strict CSP, we need to pre-compile templates
