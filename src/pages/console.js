@@ -27,12 +27,7 @@ PINSIGHT.console = (function () {
 
             chrome.storage.sync.get(['accounts', 'currencies', 'mappings'], data => this._setValues(data));
 
-            chrome.storage.onChanged.addListener((changes, namespace) =>
-                this._setValues(['accounts', 'currencies', 'mappings'].reduce((accumulator, n) => {
-                    accumulator[n] = changes[n] && changes[n].newValue;
-                    return accumulator;
-                }, {}))
-            );
+            chrome.storage.onChanged.addListener((changes, namespace) => this._onStorageChanged(changes));
 
             if (attributes.type === 'popup')
             {
@@ -52,9 +47,29 @@ PINSIGHT.console = (function () {
             }
         },
 
+        _setValues: function (data) {
+            ['accounts', 'currencies', 'mappings'].forEach(n => {
+                if (data[n])
+                    this['_set' + this._capitalize(n)](data[n]);
+            });
+            this.trigger('calculate');
+        },
+
+        _onStorageChanged: function (changes) {
+            ['accounts', 'currencies', 'mappings'].forEach(n => {
+                if (changes[n])
+                    this['_set' + this._capitalize(n)](changes[n].newValue)
+            });
+            this.trigger('calculate');
+        },
+
+        _capitalize: function (text) {
+            return text.charAt(0).toUpperCase() + text.slice(1);
+        },
+
         _storeCollection: function(collection, collectionName) {
             var obj = {};
-            obj[collectionName] = this['_push' + this._capitalize(collectionName)](collection);
+            obj[collectionName] = this['_defined' + this._capitalize(collectionName)](collection);
             chrome.storage.sync.set(obj);
         },
 
@@ -77,6 +92,14 @@ PINSIGHT.console = (function () {
             this._storeCollection(collection, collectionName);
         },
 
+        _definedAccounts: function (accounts) {
+            return accounts.toJSON();
+        },
+
+        _setAccounts: function (accounts) {
+            this.get('accounts').set(accounts);
+        },
+
         addAccount: function (account) {
             this._addModelInCollection(account, 'accounts', 0);
         },
@@ -87,6 +110,22 @@ PINSIGHT.console = (function () {
 
         removeAccount: function (account) {
             this._removeModelInCollection(account, 'accounts');
+        },
+
+        _definedCurrencies: function (currencies) {
+            return currencies
+                .toJSON()
+                .filter(c => _.isNumber(c.multiplier));
+        },
+
+        _setCurrencies: function (currencies) {
+            this.get('currencies').set(
+                currencies.concat(
+                    this._missingCurrencyCodes(currencies).map(code =>
+                        new Currency({
+                            id: code,
+                            code: code
+                        }))));
         },
 
         addCurrency: function (currency) {
@@ -101,6 +140,22 @@ PINSIGHT.console = (function () {
             this._removeModelInCollection(currency, 'currencies');
         },
 
+        _definedMappings: function (mappings) {
+            return mappings
+                .toJSON()
+                .filter(m => !!m.category);
+        },
+
+        _setMappings: function (mappings) {
+            this.get('mappings').set(
+                mappings.concat(
+                    this._missingMappingSymbols(mappings).map(symbol =>
+                        new Mapping({
+                            id: symbol,
+                            symbol: symbol
+                        }))));
+        },
+
         addMapping: function (mapping) {
             this._addModelInCollection(mapping, 'mappings');
         },
@@ -113,63 +168,9 @@ PINSIGHT.console = (function () {
             this._removeModelInCollection(mapping, 'mappings');
         },
 
-        _setValues: function (data) {
-            ['accounts', 'currencies', 'mappings'].forEach(n => {
-                if (data[n])
-                    this['_pull' + this._capitalize(n)](data[n]);
-            });
-            this.trigger('calculate');
-        },
-
-        _capitalize: function(text) {
-            return text.charAt(0).toUpperCase() + text.slice(1);
-        },
-
-        // all this pulling (pad missing values) and pushing (remove missing values) are necessary to pre-populate forms with missing values
-
-        _pullAccounts: function (accounts) {
-            this.get('accounts').set(accounts);
-        },
-
-        _pushAccounts: function(accounts) {
-            return accounts.toJSON();
-        },
-
-        _pullCurrencies: function (currencies) {
-            this.get('currencies').set(
-                currencies.concat(
-                    this._missingCurrencyCodes(currencies).map(code =>
-                        new Currency({
-                            id: code,
-                            code: code
-                        }))));
-        },
-
-        _pushCurrencies: function(currencies) {
-            return currencies
-                .toJSON()
-                .filter(c => _.isNumber(c.multiplier));
-        },
-
-        _pullMappings: function(mappings) {
-            this.get('mappings').set(
-                mappings.concat(
-                    this._missingMappingSymbols(mappings).map(symbol =>
-                        new Mapping({
-                            id: symbol,
-                            symbol: symbol
-                        }))));
-        },
-
-        _pushMappings: function(mappings) {
-            return mappings
-                .toJSON()
-                .filter(m => !!m.category);
-        },
-
         _onAccountsChange: function() {
-            this._pullCurrencies(this._pushCurrencies(this.get('currencies')));
-            this._pullMappings(this._pushMappings(this.get('mappings')));
+            this._setCurrencies(this._definedCurrencies(this.get('currencies')));
+            this._setMappings(this._definedMappings(this.get('mappings')));
         },
 
         _portfolioCurrencyCodes: function() {
