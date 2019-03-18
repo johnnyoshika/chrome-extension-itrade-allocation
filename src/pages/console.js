@@ -62,10 +62,10 @@ PINSIGHT.console = (function () {
             chrome.storage.sync.set(obj);
         },
 
-        _addModelInCollection: function (model, collectionName) {
+        _addModelInCollection: function (model, collectionName, at) {
             // clone so that event listeners on collections don't act on this
             var collection = this.get(collectionName).clone();
-            collection.add(model, { merge: true });
+            collection.add(model, { merge: true, at: at });
             this._storeCollection(collection, collectionName);
         },
 
@@ -93,7 +93,7 @@ PINSIGHT.console = (function () {
         },
 
         addAccount: function (account) {
-            this._addModelInCollection(account, 'accounts');
+            this._addModelInCollection(account, 'accounts', 0);
         },
 
         updateAccount: function (account, changes) {
