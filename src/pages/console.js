@@ -624,8 +624,11 @@ PINSIGHT.console = (function () {
         },
 
         onSubmit: function (e) {
+            var isNew = this.isNew();
             e.preventDefault();
             this.editModel();
+            if (isNew)
+                this.options.parent.trigger('add-new');
         },
 
         onRemoveClick: function (e) {
@@ -705,6 +708,11 @@ PINSIGHT.console = (function () {
     var ItemsView = BaseView.extend({
         initialize: function () {
             this.listenTo(this.collection, 'add remove reset sort', this.render);
+            this.listenTo(this, 'add-new', this.onAddNew);
+        },
+
+        onAddNew: function() {
+            this.$('input').first().focus();
         },
 
         render: function () {
@@ -715,7 +723,8 @@ PINSIGHT.console = (function () {
                     this.addChildren(
                         new this.modelView({
                             model: model,
-                            mediator: this.options.mediator
+                            mediator: this.options.mediator,
+                            parent: this
                         })
                     )
                     .render().el
