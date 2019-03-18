@@ -617,7 +617,16 @@ PINSIGHT.console = (function () {
         events: {
             'click [data-action="edit"]': 'onEditClick',
             'submit [data-action="submit"]': 'onSubmit',
-            'click [data-action="remove"]': 'onRemoveClick'
+            'click [data-action="remove"]': 'onRemoveClick',
+            'input input': 'onInput'
+        },
+
+        onInput: function (e) {
+            this.changeButtonState();
+        },
+
+        changeButtonState: function() {
+            this.$('button').prop('disabled', !this.$('input').val().length);
         },
 
         onEditClick: function () {
@@ -640,6 +649,7 @@ PINSIGHT.console = (function () {
         renderForm: function() {
             this.$el.html(this.templateForm(this.model.toJSON()));
             this.$('input').eq(1).focus();
+            this.$('button').prop('disabled', !this.$('input').val().length);
         },
 
         renderDetails() {
