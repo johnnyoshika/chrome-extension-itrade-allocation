@@ -3,16 +3,20 @@
         Currency Multipliers
     </div>
     <div class="card-body">
-        <table class="table table-sm mb-0">
-            <thead>
-                <tr>
-                    <th scope="col">Code</th>
-                    <th scope="col">Multiplier</th>
-                    <th scope="col"></th>
-                </tr>
-            </thead>
-            <tbody data-outlet="currency"></tbody>
-        </table>
+        {{#if this.length}}
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Code</th>
+                        <th scope="col">Multiplier</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody data-outlet="currency"></tbody>
+            </table>
+        {{else}}
+            <div class="text-center mb-4"><em>- empty -</em></div>
+        {{/if}}
         <div data-outlet="form"></div>
     </div>
 </div>

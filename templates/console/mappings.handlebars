@@ -3,16 +3,20 @@
         Mappings
     </div>
     <div class="card-body">
-        <table class="table table-sm mb-0">
-            <thead>
-                <tr>
-                    <th scope="col">Symbol</th>
-                    <th scope="col">Category</th>
-                    <th scope="col"></th>
-                </tr>
-            </thead>
-            <tbody data-outlet="mapping"></tbody>
-        </table>
+        {{#if this.length}}
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Symbol</th>
+                        <th scope="col">Category</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody data-outlet="mapping"></tbody>
+            </table>
+        {{else}}
+            <div class="text-center mb-4"><em>- empty -</em></div>
+        {{/if}}
         <div data-outlet="form"></div>
     </div>
 </div>

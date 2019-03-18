@@ -538,7 +538,7 @@ PINSIGHT.console = (function () {
         },
 
         render: function () {
-            this.$el.html(this.template());
+            this.$el.html(this.template(this.collection.toJSON()));
             this.renderAddButton();
 
             this.collection.forEach(currency => {
@@ -625,7 +625,7 @@ PINSIGHT.console = (function () {
         },
 
         render: function () {
-            this.$el.html(this.template());
+            this.$el.html(this.template(this.collection.toJSON()));
             this.renderAddButton();
 
             this.collection.forEach(mapping => {
