@@ -583,6 +583,7 @@ PINSIGHT.console = (function () {
 
     var ItemsView = BaseView.extend({
         initialize: function () {
+            this.state = 'idle';
             this.listenTo(this.collection, 'add remove reset sort', this.render);
         },
 
@@ -604,21 +605,27 @@ PINSIGHT.console = (function () {
         onSubmit: function (e) {
             e.preventDefault();
             this.addModel();
-            this.renderAddButton();
+            this.renderForm();
         },
 
         renderAddButton: function () {
             this.$('[data-outlet="form"]').html(this.templateAddButton());
+            this.state = 'idle';
         },
 
         renderForm: function () {
             this.$('[data-outlet="form"]').html(this.templateForm());
             this.$('input').first().focus();
+            this.state = 'adding';
         },
 
         render: function () {
             this.$el.html(this.template(this.collection.toJSON()));
-            this.renderAddButton();
+
+            if (this.state === 'adding')
+                this.renderForm();
+            else
+                this.renderAddButton();
 
             this.collection.forEach(model => {
                 this.$('[data-outlet="list"]').append(
