@@ -107,12 +107,20 @@ PINSIGHT.console = (function () {
             this._addModelInCollection(currency, 'currencies');
         },
 
+        updateCurrency: function (currency, changes) {
+            this._updateModelInCollection(currency, 'currencies', changes);
+        },
+
         removeCurrency: function (currency) {
             this._removeModelInCollection(currency, 'currencies');
         },
 
         addMapping: function (mapping) {
             this._addModelInCollection(mapping, 'mappings');
+        },
+
+        updateMapping: function (mapping, changes) {
+            this._updateModelInCollection(mapping, 'mappings', changes);
         },
 
         removeMapping: function (mapping) {
@@ -503,12 +511,35 @@ PINSIGHT.console = (function () {
         },
 
         events: {
+            'click [data-action="cancel"]': 'onCancelClick',
+            'click [data-action="edit"]': 'onEditClick',
+            'submit [data-action="submit"]': 'onSubmit',
             'click [data-action="remove"]': 'onRemoveClick'
+        },
+
+        onCancelClick: function (e) {
+            e.preventDefault();
+            this.render();
+        },
+
+        onEditClick: function () {
+            this.renderForm();
+        },
+
+        onSubmit: function (e) {
+            e.preventDefault();
+            this.editModel();
+            this.render();
         },
 
         onRemoveClick: function (e) {
             e.preventDefault();
             this.removeModel();
+        },
+
+        renderForm: function() {
+            this.$el.html('<td colspan="3">' + this.templateForm(this.model.toJSON()) + '</td>');
+            this.$('input').eq(1).focus();
         },
 
         render: function () {
@@ -520,6 +551,14 @@ PINSIGHT.console = (function () {
 
     var CurrencyView = ItemView.extend({
         template: Handlebars.templates.currency,
+        templateForm: Handlebars.templates.currencyForm,
+
+        editModel: function () {
+            this.options.mediator.updateCurrency(this.model, {
+                code: this.$('[name="code"]').val().toUpperCase(),
+                multiplier: parseValue(this.$('[name="multiplier"]').val())
+            });
+        },
 
         removeModel: function (e) {
             this.options.mediator.removeCurrency(this.model);
@@ -528,6 +567,14 @@ PINSIGHT.console = (function () {
 
     var MappingView = ItemView.extend({
         template: Handlebars.templates.mapping,
+        templateForm: Handlebars.templates.mappingForm,
+
+        editModel: function () {
+            this.options.mediator.updateMapping(this.model, {
+                symbol: this.$('[name="symbol"]').val().toUpperCase(),
+                category: this.$('[name="category"]').val()
+            });
+        },
 
         removeModel: function (e) {
             this.options.mediator.removeMapping(this.model);
@@ -551,7 +598,7 @@ PINSIGHT.console = (function () {
         },
 
         onAddClick: function () {
-            this.renderAddForm();
+            this.renderForm();
         },
 
         onSubmit: function (e) {
@@ -564,8 +611,8 @@ PINSIGHT.console = (function () {
             this.$('[data-outlet="form"]').html(this.templateAddButton());
         },
 
-        renderAddForm: function () {
-            this.$('[data-outlet="form"]').html(this.templateAddForm());
+        renderForm: function () {
+            this.$('[data-outlet="form"]').html(this.templateForm());
             this.$('input').first().focus();
         },
 
@@ -591,14 +638,15 @@ PINSIGHT.console = (function () {
 
     var CurrenciesView = ItemsView.extend({
         template: Handlebars.templates.currencies,
+        templateForm: Handlebars.templates.currencyForm,
         templateAddButton: Handlebars.templates.currenciesAddButton,
-        templateAddForm: Handlebars.templates.currenciesAddForm,
 
         modelView: CurrencyView,
 
         addModel: function (e) {
             this.options.mediator.addCurrency(new Currency({
-                code: this.$('[name="code"]').val(),
+                id: this.$('[name="code"]').val().toUpperCase(),
+                code: this.$('[name="code"]').val().toUpperCase(),
                 multiplier: parseValue(this.$('[name="multiplier"]').val())
             }));
         }
@@ -606,14 +654,15 @@ PINSIGHT.console = (function () {
 
     var MappingsView = ItemsView.extend({
         template: Handlebars.templates.mappings,
+        templateForm: Handlebars.templates.mappingForm,
         templateAddButton: Handlebars.templates.mappingsAddButton,
-        templateAddForm: Handlebars.templates.mappingsAddForm,
 
         modelView: MappingView,
 
         addModel: function (e) {
             this.options.mediator.addMapping(new Mapping({
-                symbol: this.$('[name="symbol"]').val(),
+                id: this.$('[name="symbol"]').val().toUpperCase(),
+                symbol: this.$('[name="symbol"]').val().toUpperCase(),
                 category: this.$('[name="category"]').val()
             }));
         }
