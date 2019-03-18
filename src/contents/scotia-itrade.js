@@ -36,7 +36,7 @@
 
     chrome.runtime.sendMessage({
         brokerage: {
-            id: accountName,
+            id: 'scotia-itrade:' + accountName,
             name: accountName,
             positions: positions
         }});
