@@ -19,14 +19,13 @@ PINSIGHT.console = (function () {
     var Mediator = Backbone.Model.extend({
         initialize: function (attributes, options) {
             this.set('accounts', new Accounts([]));
-            this.set('currency', new Currency([]));
-            this.set('conversions', new Conversions([]));
+            this.set('currencies', new Currencies([]));
             this.set('mappings', new Mappings([]));
 
-            chrome.storage.sync.get(['accounts', 'currency', 'conversions', 'mappings'], data => this._setValues(data));
+            chrome.storage.sync.get(['accounts', 'currencies', 'mappings'], data => this._setValues(data));
 
             chrome.storage.onChanged.addListener((changes, namespace) =>
-                this._setValues(['accounts', 'currency', 'conversions', 'mappings'].reduce((accumulator, n) => {
+                this._setValues(['accounts', 'currencies', 'mappings'].reduce((accumulator, n) => {
                     accumulator[n] = changes[n] && changes[n].newValue;
                     return accumulator;
                 }, {}))
@@ -104,16 +103,12 @@ PINSIGHT.console = (function () {
             this._removeModelInCollection(account, 'accounts');
         },
 
-        updateCurrency: function (currency, changes) {
-            this._updateModel(currency, 'currency', changes);
+        addCurrency: function (currency) {
+            this._addModelInCollection(currency, 'currencies');
         },
 
-        addConversion: function (conversion) {
-            this._addModelInCollection(conversion, 'conversions');
-        },
-
-        removeConversion: function (conversion) {
-            this._removeModelInCollection(conversion, 'conversions');
+        removeCurrency: function (currency) {
+            this._removeModelInCollection(currency, 'currencies');
         },
 
         addMapping: function (mapping) {
@@ -125,7 +120,7 @@ PINSIGHT.console = (function () {
         },
 
         _setValues: function (data) {
-            ['accounts', 'currency', 'conversions', 'mappings'].forEach(n => data[n] && this.get(n).set(data[n]));
+            ['accounts', 'currencies', 'mappings'].forEach(n => data[n] && this.get(n).set(data[n]));
             this.trigger('calculate');
         },
 
@@ -147,11 +142,8 @@ PINSIGHT.console = (function () {
     var Currency = Backbone.Model.extend({
     });
 
-    var Conversion = Backbone.Model.extend({
-    });
-
-    var Conversions = Backbone.Collection.extend({
-        model: Conversion
+    var Currencies = Backbone.Collection.extend({
+        model: Currency
     });
 
     var Mapping = Backbone.Model.extend({
@@ -165,7 +157,6 @@ PINSIGHT.console = (function () {
         defaults: {
             allocations: {
                 items: [],
-                currency: null,
                 total: 0
             }
         },
@@ -176,14 +167,13 @@ PINSIGHT.console = (function () {
             this.calculate();
         },
 
-        convertValue: function (value, currency, conversions) {
-            var conversion = conversions.find(c => c.symbol == currency) || { value: 1 };
-            return value / conversion.value;
+        convertValue: function (value, currency, currencies) {
+            var currency = currencies.find(c => c.code.toUpperCase() == currency.toUpperCase()) || { multiplier: 1 };
+            return value * currency.multiplier;
         },
 
         calculate: function () {
-            var baseCurrency = this.mediator.get('currency').get('base');
-            var conversions = this.mediator.get('conversions').toJSON();
+            var currencies = this.mediator.get('currencies').toJSON();
             var mappings = this.mediator.get('mappings').toJSON();
             var accounts = this.mediator.get('accounts').toJSON();
             var positions = accounts.flatMap(account => account.positions);
@@ -199,7 +189,7 @@ PINSIGHT.console = (function () {
                         allocation = { category: pm.mapping.category, value: 0 };
                         allocations.push(allocation);
                     }
-                    allocation.value += this.convertValue(pm.position.value, pm.position.currency, conversions);
+                    allocation.value += this.convertValue(pm.position.value, pm.position.currency, currencies);
                     return allocations;
                 }, []);
 
@@ -210,7 +200,6 @@ PINSIGHT.console = (function () {
 
             this.set('allocations', {
                 items: allocations,
-                currency: baseCurrency,
                 total: formatValue(total)
             });
         }
@@ -377,11 +366,10 @@ PINSIGHT.console = (function () {
               .render().el
             );
 
-            this.$('[data-outlet="currency"]').append(
+            this.$('[data-outlet="currencies"]').append(
               this.addChildren(
-                new CurrencyView({
-                    model: this.model.get('currency'),
-                    conversions: this.model.get('conversions'),
+                new CurrenciesView({
+                    collection: this.model.get('currencies'),
                     mediator: this.model
                 })
               )
@@ -507,116 +495,57 @@ PINSIGHT.console = (function () {
         }
     });
 
-    var CurrencyView = BaseView.extend({
-        template: Handlebars.templates.currency,
-        templateBaseDetails: Handlebars.templates.currencyBaseDetails,
-        templateBaseEdit: Handlebars.templates.currencyBaseEdit,
-        templateConversionAddButton: Handlebars.templates.currencyConversionAddButton,
-        templateConversionAddForm: Handlebars.templates.currencyConversionAddForm,
-
-        initialize: function () {
-            this.listenTo(this.model, 'change:base', this.onBaseChange);
-        },
-        
-        events: {
-            'click [data-action="edit-base-cancel"]': 'onEditBaseCancelClick',
-            'click [data-action="edit-base"]': 'onEditBaseClick',
-            'submit [data-action="submit-base"]': 'onSubmitBase',
-            'click [data-action="add-conversion-cancel"]': 'onAddConversionCancelClick',
-            'click [data-action="add-conversion"]': 'onAddConversionClick',
-            'submit [data-action="submit-conversion"]': 'onSubmitConversion'
-        },
-        
-        onEditBaseCancelClick: function (e) {
-            e.preventDefault();
-            this.renderBaseDetails();
-        },
-
-        onEditBaseClick: function (e) {
-            e.preventDefault();
-            this.renderBaseEdit();
-        },
-        
-        onSubmitBase: function (e) {
-            e.preventDefault();
-            this.options.mediator.updateCurrency(this.model, { base: this.$('input[name="base"]').val() });
-            this.renderBaseDetails();
-        },
-
-        onAddConversionCancelClick: function(e) {
-            e.preventDefault();
-            this.renderConversionAddButton();
-        },
-
-        onAddConversionClick: function() {
-            this.renderConversionAddForm();
-        },
-
-        onSubmitConversion: function(e) {
-            e.preventDefault();
-            this.options.mediator.addConversion(new Conversion({
-                symbol: this.$('[name="symbol"]').val(),
-                value: parseValue(this.$('[name="value"]').val())
-            }));
-            this.renderConversionAddButton();
-        },
-
-        onBaseChange: function() {
-            this.renderBaseDetails();
-        },
-        
-        renderBaseDetails: function() {
-            this.$('[data-outlet="base"]').html(this.templateBaseDetails(this.model.toJSON()));
-        },
-
-        renderBaseEdit: function () {
-            this.$('[data-outlet="base"]').html(this.templateBaseEdit(this.model.toJSON()));
-            this.$('input[name="base"]').focus();
-        },
-
-        renderConversionAddButton: function() {
-            this.$('[data-outlet="conversion-form"]').html(this.templateConversionAddButton());
-        },
-
-        renderConversionAddForm: function() {
-            this.$('[data-outlet="conversion-form"]').html(this.templateConversionAddForm());
-            this.$('input[name="symbol"]').focus();
-        },
-
-        render: function () {
-            this.$el.html(this.template(this.model.toJSON()));
-            this.renderBaseDetails();
-            this.renderConversionAddButton();
-
-            this.$('[data-outlet="conversions"]').append(
-                this.addChildren(
-                    new ConversionsView({
-                        collection: this.options.conversions,
-                        mediator: this.options.mediator
-                    })
-                )
-                .render().el
-            );
-
-            return this;
-        }
-    });
-
-    var ConversionsView = BaseView.extend({
-        template: Handlebars.templates.conversions,
+    var CurrenciesView = BaseView.extend({
+        template: Handlebars.templates.currencies,
+        templateAddButton: Handlebars.templates.currenciesAddButton,
+        templateAddForm: Handlebars.templates.currenciesAddForm,
 
         initialize: function () {
             this.listenTo(this.collection, 'add remove reset sort', this.render);
         },
 
+        events: {
+            'click [data-action="cancel"]': 'onCancelClick',
+            'click [data-action="add"]': 'onAddClick',
+            'submit [data-action="submit"]': 'onSubmit'
+        },
+
+        onCancelClick: function (e) {
+            e.preventDefault();
+            this.renderAddButton();
+        },
+
+        onAddClick: function () {
+            this.renderAddForm();
+        },
+
+        onSubmit: function (e) {
+            e.preventDefault();
+            this.options.mediator.addCurrency(new Currency({
+                code: this.$('[name="code"]').val(),
+                multiplier: parseValue(this.$('[name="multiplier"]').val())
+            }));
+            this.renderAddButton();
+        },
+
+        renderAddButton: function () {
+            this.$('[data-outlet="form"]').html(this.templateAddButton());
+        },
+
+        renderAddForm: function () {
+            this.$('[data-outlet="form"]').html(this.templateAddForm());
+            this.$('input[name="symbol"]').focus();
+        },
+
         render: function () {
             this.$el.html(this.template());
+            this.renderAddButton();
 
-            this.collection.forEach(conversion => {
-                this.$('[data-outlet="conversion"]').append(
+            this.collection.forEach(currency => {
+                this.$('[data-outlet="currency"]').append(
                     this.addChildren(
-                        new ConversionView({
-                            model: conversion,
+                        new CurrencyView({
+                            model: currency,
                             mediator: this.options.mediator
                         })
                     )
@@ -628,8 +557,8 @@ PINSIGHT.console = (function () {
         }
     });
 
-    var ConversionView = BaseView.extend({
-        template: Handlebars.templates.conversion,
+    var CurrencyView = BaseView.extend({
+        template: Handlebars.templates.currency,
 
         tagName: 'tr',
 
@@ -643,7 +572,7 @@ PINSIGHT.console = (function () {
 
         onRemoveClick: function (e) {
             e.preventDefault();
-            this.options.mediator.removeConversion(this.model);
+            this.options.mediator.removeCurrency(this.model);
         },
 
         render: function () {
