@@ -2,7 +2,7 @@ var PINSIGHT = window.PINSIGHT || {};
 
 PINSIGHT.console = (function () {
 
-    // HELPERS
+    //#region HELPERS
 
     var parseValue = text => text && parseFloat(text.replace(/,/g, ''));
 
@@ -14,7 +14,9 @@ PINSIGHT.console = (function () {
         return parts.join(".");
     };
 
-    // MODELS
+    //#endregion
+
+    //#region Mediator
 
     var Mediator = Backbone.Model.extend({
         initialize: function (attributes, options) {
@@ -137,6 +139,10 @@ PINSIGHT.console = (function () {
         }
     });
 
+    //#endregion
+
+    //#region Account
+
     var Account = Backbone.Model.extend({
         defaults: {
             hidden: false
@@ -147,6 +153,10 @@ PINSIGHT.console = (function () {
         model: Account
     });
 
+    //#endregion
+
+    //#region Currency
+
     var Currency = Backbone.Model.extend({
     });
 
@@ -154,12 +164,20 @@ PINSIGHT.console = (function () {
         model: Currency
     });
 
+    //#endregion
+
+    //#region Mapping
+
     var Mapping = Backbone.Model.extend({
     });
 
     var Mappings = Backbone.Collection.extend({
         model: Mapping
     });
+
+    //#endregion
+
+    //#region Portfolio
 
     var Portfolio = Backbone.Model.extend({
         defaults: {
@@ -213,7 +231,9 @@ PINSIGHT.console = (function () {
         }
     });
 
-    // VIEWS
+    //#endregion
+
+    //#region BaseView
 
     var BaseView = function (options) {
         this.parent = null;
@@ -282,7 +302,9 @@ PINSIGHT.console = (function () {
 
     BaseView.extend = Backbone.View.extend;
 
-    // Popup views
+    //#endregion
+
+    //#region PopupView
 
     var PopupView = BaseView.extend({
         template: Handlebars.templates.popup,
@@ -321,6 +343,10 @@ PINSIGHT.console = (function () {
         }
     });
 
+    //#endregion
+
+    //#region BrokerageView
+
     var BrokerageView = BaseView.extend({
         template: Handlebars.templates.brokerage,
 
@@ -356,7 +382,9 @@ PINSIGHT.console = (function () {
         }
     });
 
-    // Dashboard views
+    //#endregion
+
+    //#region DashboardView
 
     var DashboardView = BaseView.extend({
         template: Handlebars.templates.dashboard,
@@ -407,7 +435,9 @@ PINSIGHT.console = (function () {
         }
     });
 
-    // Shared views
+    //#endregion
+
+    //#region AccountsView
 
     var AccountsView = BaseView.extend({
         template: Handlebars.templates.accounts,
@@ -439,6 +469,10 @@ PINSIGHT.console = (function () {
             return this;
         }
     });
+
+    //#endregion
+
+    //#region AccountView
 
     var AccountView = BaseView.extend({
         template: Handlebars.templates.account,
@@ -503,6 +537,10 @@ PINSIGHT.console = (function () {
         }
     });
 
+    //#endregion
+
+    //#region ItemView
+
     var ItemView = BaseView.extend({
         tagName: 'tr',
 
@@ -549,6 +587,10 @@ PINSIGHT.console = (function () {
         }
     });
 
+    //#endregion
+
+    //#region CurrencyView
+
     var CurrencyView = ItemView.extend({
         template: Handlebars.templates.currency,
         templateForm: Handlebars.templates.currencyForm,
@@ -565,6 +607,10 @@ PINSIGHT.console = (function () {
         }
     });
 
+    //#endregion
+
+    //#region MappingView
+
     var MappingView = ItemView.extend({
         template: Handlebars.templates.mapping,
         templateForm: Handlebars.templates.mappingForm,
@@ -580,6 +626,10 @@ PINSIGHT.console = (function () {
             this.options.mediator.removeMapping(this.model);
         }
     });
+
+    //#endregion
+
+    //#region ItemsView
 
     var ItemsView = BaseView.extend({
         initialize: function () {
@@ -643,6 +693,10 @@ PINSIGHT.console = (function () {
         }
     });
 
+    //#endregion
+
+    //#region CurrenciesView
+
     var CurrenciesView = ItemsView.extend({
         template: Handlebars.templates.currencies,
         templateForm: Handlebars.templates.currencyForm,
@@ -658,6 +712,10 @@ PINSIGHT.console = (function () {
             }));
         }
     });
+
+    //#endregion
+
+    //#region MappingsView
 
     var MappingsView = ItemsView.extend({
         template: Handlebars.templates.mappings,
@@ -675,6 +733,10 @@ PINSIGHT.console = (function () {
         }
     });
 
+    //#endregion
+
+    //#region PortfolioView
+
     var PortfolioView = BaseView.extend({
         template: Handlebars.templates.portfolio,
 
@@ -688,6 +750,8 @@ PINSIGHT.console = (function () {
         }
     });
     
+    //#endregion
+
     return {
         popup: function () {
             $('[data-outlet="popup"]').append(new PopupView({
