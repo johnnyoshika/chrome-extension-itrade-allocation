@@ -23,6 +23,7 @@ PINSIGHT.console = (function () {
             this.set('accounts', new Accounts([]));
             this.set('currencies', new Currencies([]));
             this.set('mappings', new Mappings([]));
+            this.listenTo(this.get('accounts'), 'add remove reset', this._onAccountsChange);
 
             chrome.storage.sync.get(['accounts', 'currencies', 'mappings'], data => this._setValues(data));
 
@@ -53,44 +54,27 @@ PINSIGHT.console = (function () {
 
         _storeCollection: function(collection, collectionName) {
             var obj = {};
-            obj[collectionName] = collection.toJSON();
-            chrome.storage.sync.set(obj);
-        },
-
-        _storeModel: function(model, modelName) {
-            var obj = {};
-            obj[modelName] = model.toJSON();
+            obj[collectionName] = this['_push' + this._capitalize(collectionName)](collection);
             chrome.storage.sync.set(obj);
         },
 
         _addModelInCollection: function (model, collectionName, at) {
-            // clone so that event listeners on collections don't act on this
-            var collection = this.get(collectionName).clone();
+            var collection = this.get(collectionName);
             collection.add(model, { merge: true, at: at });
             this._storeCollection(collection, collectionName);
         },
 
         _updateModelInCollection: function(model, collectionName, changes) {
-            // clone so that event listeners on collections don't act on this
-            var clone = model.clone();
-            clone.set(changes);
-            var collection = this.get(collectionName).clone();
-            collection.add(clone, { merge: true });
+            model.set(changes);
+            var collection = this.get(collectionName);
+            collection.add(model, { merge: true });
             this._storeCollection(collection, collectionName);
         },
 
         _removeModelInCollection: function(model, collectionName) {
-            // clone so that event listeners on collections don't act on this
-            var collection = this.get(collectionName).clone();
+            var collection = this.get(collectionName);
             collection.remove(model);
             this._storeCollection(collection, collectionName);
-        },
-
-        _updateModel: function (model, modelName, changes) {
-            // clone so that event listeners on model don't act on this 
-            var clone = model.clone();
-            clone.set(changes);
-            this._storeModel(clone, modelName);
         },
 
         addAccount: function (account) {
@@ -130,8 +114,88 @@ PINSIGHT.console = (function () {
         },
 
         _setValues: function (data) {
-            ['accounts', 'currencies', 'mappings'].forEach(n => data[n] && this.get(n).set(data[n]));
+            ['accounts', 'currencies', 'mappings'].forEach(n => {
+                if (data[n])
+                    this['_pull' + this._capitalize(n)](data[n]);
+            });
             this.trigger('calculate');
+        },
+
+        _capitalize: function(text) {
+            return text.charAt(0).toUpperCase() + text.slice(1);
+        },
+
+        // all this pulling (pad missing values) and pushing (remove missing values) are necessary to pre-populate forms with missing values
+
+        _pullAccounts: function (accounts) {
+            this.get('accounts').set(accounts);
+        },
+
+        _pushAccounts: function(accounts) {
+            return accounts.toJSON();
+        },
+
+        _pullCurrencies: function (currencies) {
+            this.get('currencies').set(
+                currencies.concat(
+                    this._missingCurrencyCodes(currencies).map(code =>
+                        new Currency({
+                            id: code,
+                            code: code
+                        }))));
+        },
+
+        _pushCurrencies: function(currencies) {
+            return currencies
+                .toJSON()
+                .filter(c => _.isNumber(c.multiplier));
+        },
+
+        _pullMappings: function(mappings) {
+            this.get('mappings').set(
+                mappings.concat(
+                    this._missingMappingSymbols(mappings).map(symbol =>
+                        new Mapping({
+                            id: symbol,
+                            symbol: symbol
+                        }))));
+        },
+
+        _pushMappings: function(mappings) {
+            return mappings
+                .toJSON()
+                .filter(m => !!m.category);
+        },
+
+        _onAccountsChange: function() {
+            this._pullCurrencies(this._pushCurrencies(this.get('currencies')));
+            this._pullMappings(this._pushMappings(this.get('mappings')));
+        },
+
+        _portfolioCurrencyCodes: function() {
+            return _.uniq(this.get('accounts')
+                .toJSON()
+                .flatMap(a => a.positions)
+                .map(p => p.currency));
+        },
+
+        _portfolioSymbols: function() {
+            return _.uniq(this.get('accounts')
+                .toJSON()
+                .flatMap(a => a.positions)
+                .map(p => p.symbol));
+        },
+
+        _missingCurrencyCodes: function(currencies) {
+            var defined = currencies.map(c => c.code);
+            return this._portfolioCurrencyCodes()
+                .filter(c => !defined.some(d => d == c));
+        },
+
+        _missingMappingSymbols: function(mappings) {
+            var mapped = mappings.map(m => m.symbol);
+            return this._portfolioSymbols()
+                .filter(s => !mapped.some(m => m == s));
         },
 
         goToDashboard: function () {
@@ -194,7 +258,7 @@ PINSIGHT.console = (function () {
         },
 
         convertValue: function (value, currency, currencies) {
-            var currency = currencies.find(c => c.code.toUpperCase() == currency.toUpperCase()) || { multiplier: 1 };
+            var currency = currencies.find(c => c.code.toUpperCase() === currency.toUpperCase() && _.isNumber(c.multiplier)) || { multiplier: 1 };
             return value * currency.multiplier;
         },
 
@@ -207,7 +271,7 @@ PINSIGHT.console = (function () {
             var allocations = positions
                 .map(p => ({
                     position: p,
-                    mapping: mappings.find(m => m.symbol === p.symbol) || { category: 'Uncategorized', symbol: p.symbol }
+                    mapping: mappings.find(m => m.symbol === p.symbol && !!m.category) || { category: '???', symbol: p.symbol }
                 }))
                 .reduce((allocations, pm) => {
                     var allocation = allocations.find(a => a.category === pm.mapping.category);
@@ -545,19 +609,14 @@ PINSIGHT.console = (function () {
         tagName: 'tr',
 
         initialize: function () {
+            this.state = 'idle';
             this.listenTo(this.model, 'change', this.render);
         },
 
         events: {
-            'click [data-action="cancel"]': 'onCancelClick',
             'click [data-action="edit"]': 'onEditClick',
             'submit [data-action="submit"]': 'onSubmit',
             'click [data-action="remove"]': 'onRemoveClick'
-        },
-
-        onCancelClick: function (e) {
-            e.preventDefault();
-            this.render();
         },
 
         onEditClick: function () {
@@ -567,7 +626,6 @@ PINSIGHT.console = (function () {
         onSubmit: function (e) {
             e.preventDefault();
             this.editModel();
-            this.render();
         },
 
         onRemoveClick: function (e) {
@@ -576,12 +634,19 @@ PINSIGHT.console = (function () {
         },
 
         renderForm: function() {
-            this.$el.html('<td colspan="3">' + this.templateForm(this.model.toJSON()) + '</td>');
+            this.$el.html(this.templateForm(this.model.toJSON()));
             this.$('input').eq(1).focus();
         },
 
-        render: function () {
+        renderDetails() {
             this.$el.html(this.template(this.model.toJSON()));
+        },
+
+        render: function () {
+            if (this.isNew())
+                this.renderForm();
+            else
+                this.renderDetails();
 
             return this;
         }
@@ -597,9 +662,12 @@ PINSIGHT.console = (function () {
 
         editModel: function () {
             this.options.mediator.updateCurrency(this.model, {
-                code: this.$('[name="code"]').val().toUpperCase(),
                 multiplier: parseValue(this.$('[name="multiplier"]').val())
             });
+        },
+
+        isNew: function() {
+            return !_.isNumber(this.model.get('multiplier'));
         },
 
         removeModel: function (e) {
@@ -617,9 +685,12 @@ PINSIGHT.console = (function () {
 
         editModel: function () {
             this.options.mediator.updateMapping(this.model, {
-                symbol: this.$('[name="symbol"]').val().toUpperCase(),
                 category: this.$('[name="category"]').val()
             });
+        },
+
+        isNew: function () {
+            return !this.model.get('category');
         },
 
         removeModel: function (e) {
@@ -633,49 +704,11 @@ PINSIGHT.console = (function () {
 
     var ItemsView = BaseView.extend({
         initialize: function () {
-            this.state = 'idle';
             this.listenTo(this.collection, 'add remove reset sort', this.render);
-        },
-
-        events: {
-            'click [data-action="cancel"]': 'onCancelClick',
-            'click [data-action="add"]': 'onAddClick',
-            'submit [data-action="submit"]': 'onSubmit'
-        },
-
-        onCancelClick: function (e) {
-            e.preventDefault();
-            this.renderAddButton();
-        },
-
-        onAddClick: function () {
-            this.renderForm();
-        },
-
-        onSubmit: function (e) {
-            e.preventDefault();
-            this.addModel();
-            this.renderForm();
-        },
-
-        renderAddButton: function () {
-            this.$('[data-outlet="form"]').html(this.templateAddButton());
-            this.state = 'idle';
-        },
-
-        renderForm: function () {
-            this.$('[data-outlet="form"]').html(this.templateForm());
-            this.$('input').first().focus();
-            this.state = 'adding';
         },
 
         render: function () {
             this.$el.html(this.template(this.collection.toJSON()));
-
-            if (this.state === 'adding')
-                this.renderForm();
-            else
-                this.renderAddButton();
 
             this.collection.forEach(model => {
                 this.$('[data-outlet="list"]').append(
