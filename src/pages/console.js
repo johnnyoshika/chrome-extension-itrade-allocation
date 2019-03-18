@@ -495,177 +495,127 @@ PINSIGHT.console = (function () {
         }
     });
 
-    var CurrenciesView = BaseView.extend({
+    var ItemView = BaseView.extend({
+        tagName: 'tr',
+
+        initialize: function () {
+            this.listenTo(this.model, 'change', this.render);
+        },
+
+        events: {
+            'click [data-action="remove"]': 'onRemoveClick'
+        },
+
+        onRemoveClick: function (e) {
+            e.preventDefault();
+            this.removeModel();
+        },
+
+        render: function () {
+            this.$el.html(this.template(this.model.toJSON()));
+
+            return this;
+        }
+    });
+
+    var CurrencyView = ItemView.extend({
+        template: Handlebars.templates.currency,
+
+        removeModel: function (e) {
+            this.options.mediator.removeCurrency(this.model);
+        }
+    });
+
+    var MappingView = ItemView.extend({
+        template: Handlebars.templates.mapping,
+
+        removeModel: function (e) {
+            this.options.mediator.removeMapping(this.model);
+        }
+    });
+
+    var ItemsView = BaseView.extend({
+        initialize: function () {
+            this.listenTo(this.collection, 'add remove reset sort', this.render);
+        },
+
+        events: {
+            'click [data-action="cancel"]': 'onCancelClick',
+            'click [data-action="add"]': 'onAddClick',
+            'submit [data-action="submit"]': 'onSubmit'
+        },
+
+        onCancelClick: function (e) {
+            e.preventDefault();
+            this.renderAddButton();
+        },
+
+        onAddClick: function () {
+            this.renderAddForm();
+        },
+
+        onSubmit: function (e) {
+            e.preventDefault();
+            this.addModel();
+            this.renderAddButton();
+        },
+
+        renderAddButton: function () {
+            this.$('[data-outlet="form"]').html(this.templateAddButton());
+        },
+
+        renderAddForm: function () {
+            this.$('[data-outlet="form"]').html(this.templateAddForm());
+            this.$('input').first().focus();
+        },
+
+        render: function () {
+            this.$el.html(this.template(this.collection.toJSON()));
+            this.renderAddButton();
+
+            this.collection.forEach(model => {
+                this.$('[data-outlet="list"]').append(
+                    this.addChildren(
+                        new this.modelView({
+                            model: model,
+                            mediator: this.options.mediator
+                        })
+                    )
+                    .render().el
+                );
+            });
+
+            return this;
+        }
+    });
+
+    var CurrenciesView = ItemsView.extend({
         template: Handlebars.templates.currencies,
         templateAddButton: Handlebars.templates.currenciesAddButton,
         templateAddForm: Handlebars.templates.currenciesAddForm,
 
-        initialize: function () {
-            this.listenTo(this.collection, 'add remove reset sort', this.render);
-        },
+        modelView: CurrencyView,
 
-        events: {
-            'click [data-action="cancel"]': 'onCancelClick',
-            'click [data-action="add"]': 'onAddClick',
-            'submit [data-action="submit"]': 'onSubmit'
-        },
-
-        onCancelClick: function (e) {
-            e.preventDefault();
-            this.renderAddButton();
-        },
-
-        onAddClick: function () {
-            this.renderAddForm();
-        },
-
-        onSubmit: function (e) {
-            e.preventDefault();
+        addModel: function (e) {
             this.options.mediator.addCurrency(new Currency({
                 code: this.$('[name="code"]').val(),
                 multiplier: parseValue(this.$('[name="multiplier"]').val())
             }));
-            this.renderAddButton();
-        },
-
-        renderAddButton: function () {
-            this.$('[data-outlet="form"]').html(this.templateAddButton());
-        },
-
-        renderAddForm: function () {
-            this.$('[data-outlet="form"]').html(this.templateAddForm());
-            this.$('input[name="symbol"]').focus();
-        },
-
-        render: function () {
-            this.$el.html(this.template(this.collection.toJSON()));
-            this.renderAddButton();
-
-            this.collection.forEach(currency => {
-                this.$('[data-outlet="currency"]').append(
-                    this.addChildren(
-                        new CurrencyView({
-                            model: currency,
-                            mediator: this.options.mediator
-                        })
-                    )
-                    .render().el
-                );
-            });
-
-            return this;
         }
     });
 
-    var CurrencyView = BaseView.extend({
-        template: Handlebars.templates.currency,
-
-        tagName: 'tr',
-
-        initialize: function () {
-            this.listenTo(this.model, 'change', this.render);
-        },
-
-        events: {
-            'click [data-action="remove"]': 'onRemoveClick'
-        },
-
-        onRemoveClick: function (e) {
-            e.preventDefault();
-            this.options.mediator.removeCurrency(this.model);
-        },
-
-        render: function () {
-            this.$el.html(this.template(this.model.toJSON()));
-
-            return this;
-        }
-    });
-
-    var MappingsView = BaseView.extend({
+    var MappingsView = ItemsView.extend({
         template: Handlebars.templates.mappings,
         templateAddButton: Handlebars.templates.mappingsAddButton,
         templateAddForm: Handlebars.templates.mappingsAddForm,
 
-        initialize: function () {
-            this.listenTo(this.collection, 'add remove reset sort', this.render);
-        },
+        modelView: MappingView,
 
-        events: {
-            'click [data-action="cancel"]': 'onCancelClick',
-            'click [data-action="add"]': 'onAddClick',
-            'submit [data-action="submit"]': 'onSubmit'
-        },
-
-        onCancelClick: function (e) {
-            e.preventDefault();
-            this.renderAddButton();
-        },
-
-        onAddClick: function () {
-            this.renderAddForm();
-        },
-
-        onSubmit: function (e) {
-            e.preventDefault();
+        addModel: function (e) {
             this.options.mediator.addMapping(new Mapping({
                 symbol: this.$('[name="symbol"]').val(),
                 category: this.$('[name="category"]').val()
             }));
-            this.renderAddButton();
-        },
-
-        renderAddButton: function () {
-            this.$('[data-outlet="form"]').html(this.templateAddButton());
-        },
-
-        renderAddForm: function () {
-            this.$('[data-outlet="form"]').html(this.templateAddForm());
-            this.$('input[name="symbol"]').focus();
-        },
-
-        render: function () {
-            this.$el.html(this.template(this.collection.toJSON()));
-            this.renderAddButton();
-
-            this.collection.forEach(mapping => {
-                this.$('[data-outlet="mapping"]').append(
-                    this.addChildren(
-                        new MappingView({
-                            model: mapping,
-                            mediator: this.options.mediator
-                        })
-                    )
-                    .render().el
-                );
-            });
-
-            return this;
-        }
-    });
-
-    var MappingView = BaseView.extend({
-        template: Handlebars.templates.mapping,
-
-        tagName: 'tr',
-
-        initialize: function () {
-            this.listenTo(this.model, 'change', this.render);
-        },
-
-        events: {
-            'click [data-action="remove"]': 'onRemoveClick'
-        },
-
-        onRemoveClick: function (e) {
-            e.preventDefault();
-            this.options.mediator.removeMapping(this.model);
-        },
-
-        render: function () {
-            this.$el.html(this.template(this.model.toJSON()));
-
-            return this;
         }
     });
 
