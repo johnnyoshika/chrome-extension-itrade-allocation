@@ -177,7 +177,8 @@ PINSIGHT.console = (function () {
             return _.uniq(this.get('accounts')
                 .toJSON()
                 .flatMap(a => a.positions)
-                .map(p => p.currency));
+                .map(p => p.currency)
+                .filter(c => !!c));
         },
 
         _portfolioSymbols: function() {
