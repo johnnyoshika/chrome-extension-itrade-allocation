@@ -425,7 +425,11 @@ PINSIGHT.console = (function () {
         },
 
         onAddClick: function (e) {
-            this.model.addAccount(this.model.get('brokerage'));
+            var account = this.model.get('accounts').get(this.model.get('brokerage').id);
+            if (account)
+                this.model.updateAccount(account, this.model.get('brokerage').toJSON());
+            else
+                this.model.addAccount(this.model.get('brokerage'));
         },
 
         render: function () {
@@ -543,7 +547,7 @@ PINSIGHT.console = (function () {
         template: Handlebars.templates.account,
 
         initialize: function () {
-            this.listenTo(this.model, 'change:hidden', this.onHiddenChange);
+            this.listenTo(this.model, 'change', this.onModelChange);
         },
 
         events: {
@@ -561,13 +565,18 @@ PINSIGHT.console = (function () {
             this.options.mediator.updateAccount(this.model, { hidden: !this.model.get('hidden') });
         },
 
-        onHiddenChange: function () {
-            if (this.model.get('hidden'))
-                this.$('[data-element="positions"]').slideUp();
-            else
-                this.$('[data-element="positions"]').slideDown();
-
-            this.toggleChevron();
+        onModelChange: function (model) {
+            var keys = Object.keys(model.changed);
+            if (keys.length === 1 && keys.includes('hidden'))
+            {
+                if (this.model.get('hidden'))
+                    this.$('[data-element="positions"]').slideUp();
+                else
+                    this.$('[data-element="positions"]').slideDown();
+                this.toggleChevron();
+            } else {
+                this.render();
+            }
         },
 
         toggleChevron: function () {
