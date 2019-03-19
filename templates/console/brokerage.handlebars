@@ -1,3 +1,13 @@
+{{#if info}}
+<div class="alert alert-info" role="alert">
+    {{info}}
+</div>
+{{/if}}
+{{#if error}}
+<div class="alert alert-danger" role="alert">
+    {{error}}
+</div>
+{{/if}}
 <div class="card my-4">
     {{#if found}}
         <div class="card-header">

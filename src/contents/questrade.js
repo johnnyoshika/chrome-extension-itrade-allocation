@@ -16,11 +16,30 @@
 
     var accountName = $('[data-qt="lblSelectorName"]').first().text();
 
+    if (!accountName)
+        return;
+
+    var getInfo = function () {
+        if (!positions.length)
+            return 'Positions list is empty.';
+
+        if (positions.some(p => !p.currency))
+            return `Currency is missing. Edit columns to add 'Currency' to the list.`;
+
+        return null;;
+    };
+
     chrome.runtime.sendMessage({
         brokerage: {
-            id: 'questrade:' + accountName,
-            name: accountName,
-            positions: positions
+            account: {
+                id: 'questrade:' + accountName,
+                name: accountName,
+                positions: positions
+            },
+            message: {
+                error: null,
+                info: getInfo()
+            }
         }
     });
 

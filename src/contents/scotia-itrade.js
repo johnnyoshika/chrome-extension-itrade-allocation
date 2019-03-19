@@ -34,11 +34,27 @@
 
     var accountName = document.querySelector('.branding-header').querySelector('h3[title]').textContent;
 
+    if (!accountName)
+        return;
+
+    var getInfo = function () {
+        if (!positions.length)
+            return 'Positions list is empty.';
+
+        return null;;
+    };
+
     chrome.runtime.sendMessage({
         brokerage: {
-            id: 'scotia-itrade:' + accountName,
-            name: accountName,
-            positions: positions
+            account: {
+                id: 'scotia-itrade:' + accountName,
+                name: accountName,
+                positions: positions
+            },
+            message: {
+                error: null,
+                info: getInfo()
+            }
         }});
 
 }());

@@ -33,7 +33,7 @@ PINSIGHT.console = (function () {
             {
                 chrome.runtime.onMessage.addListener(request =>
                     request.brokerage
-                        && this.set('brokerage', new Account(request.brokerage)));
+                        && this.set('brokerage', new Brokerage(request.brokerage)));
 
                 chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
                     var tab = tabs[0];
@@ -201,6 +201,20 @@ PINSIGHT.console = (function () {
 
         goToDashboard: function () {
             chrome.tabs.create({ url: chrome.runtime.getURL('pages/dashboard.html') });
+        }
+    });
+
+    //#endregion
+
+    //#region Brokerage
+
+    var Message = Backbone.Model.extend({
+    });
+
+    var Brokerage = Backbone.Model.extend({
+        initialize: function (attributes) {
+            this.set('account', new Account(attributes.account));
+            this.set('message', new Message(attributes.message));
         }
     });
 
@@ -425,24 +439,29 @@ PINSIGHT.console = (function () {
         },
 
         onAddClick: function (e) {
-            var account = this.model.get('accounts').get(this.model.get('brokerage').id);
+            var brokerage = this.model.get('brokerage');
+            var account = this.model.get('accounts').get(brokerage.get('account').id);
             if (account)
-                this.model.updateAccount(account, this.model.get('brokerage').toJSON());
+                this.model.updateAccount(account, brokerage.get('account').toJSON());
             else
-                this.model.addAccount(this.model.get('brokerage'));
+                this.model.addAccount(brokerage.get('account'));
         },
 
         render: function () {
             this.disposeAllChildren();
+
+            var brokerage = this.model.get('brokerage');
             this.$el.html(this.template({
-                found: !!this.model.get('brokerage'),
-                exists: !!this.model.get('accounts').get(this.model.get('brokerage') && this.model.get('brokerage').id)
+                info: brokerage && brokerage.get('message').get('info'),
+                error: brokerage && brokerage.get('message').get('error'),
+                found: !!brokerage,
+                exists: !!this.model.get('accounts').get(brokerage && brokerage.get('account') && brokerage.get('account').id)
             }));
 
-            if (this.model.get('brokerage'))
+            if (brokerage)
                 this.$('[data-outlet="account"]').append(
                     this.addChildren(
-                        new AccountView({ model: this.model.get('brokerage') })
+                        new AccountView({ model: brokerage.get('account') })
                     )
                     .render().el
                 );
