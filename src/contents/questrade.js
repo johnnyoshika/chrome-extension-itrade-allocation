@@ -11,7 +11,7 @@
         .map((index, element) => ({
             symbol: $(element).find('[data-qt="boxPositionsSymbol"]').find('[data-qt="lstPositionsSymbol"]').text().toUpperCase(),
             value: parseValue($(element).find('[data-qt="lstPositionsMarketValue"]').text()),
-            currency: $(element).find('[data-qt="lstPositionsCurrency"]').text().toUpperCase()
+            currency: $(element).find('[data-qt="lstPositionsCurrency"]').text().toUpperCase() || undefined
         }))
         .toArray();
 
