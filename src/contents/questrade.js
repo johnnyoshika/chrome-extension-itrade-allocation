@@ -1,6 +1,7 @@
 (function () {
 
     var parseValue = text => text && parseFloat(text.replace(/,/g, ''));
+    var viewport= null;
 
     // Need at least symbol and market value. User will need to edit columns to add currency.
     var positions = $('table')
@@ -14,6 +15,25 @@
         }))
         .toArray();
 
+    // If table with positions couldn't be found, user may be in mobile view, so look for positions there.
+    // Unfortunately currency doesn't display in mobile view.
+    if (positions.length) {
+        viewport = 'wide';
+    } else {
+        positions = $('ul')
+            .has('[data-qt="lblSymbolName"]')
+            .has('[data-qt="lblCurrentValue"]')
+            .find('li')
+            .map((index, element) => ({
+                symbol: $(element).find('[data-qt="lblSymbolName"]').text().toUpperCase(),
+                value: parseValue($(element).find('[data-qt="lblCurrentValue"]').text())
+            }))
+            .toArray();
+
+        if (positions.length)
+            viewport = 'narrow';
+    }
+
     var accountName = $('[data-qt="lblSelectorName"]').first().text();
 
     if (!accountName)
@@ -23,8 +43,12 @@
         if (!positions.length)
             return 'Positions list is empty.';
 
-        if (positions.some(p => !p.currency))
-            return `Currency is missing. Edit columns to add 'Currency' to the list.`;
+        if (positions.some(p => !p.currency)) {
+            if (viewport === 'narrow')
+                return 'Switch to wide screen to find currency.'
+            else
+                return `Currency is missing. Edit columns and add 'Currency' to the list.`;
+        }
 
         return null;;
     };
