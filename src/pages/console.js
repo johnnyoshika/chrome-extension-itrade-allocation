@@ -43,8 +43,12 @@ PINSIGHT.console = (function () {
                     if (tab.url.startsWith('https://www.scotiaonline.scotiabank.com/online/views/accounts/accountDetails/'))
                         chrome.tabs.executeScript(tab.id, { file: '/contents/scotia-itrade.js' });
                     else if (tab.url.startsWith('https://my.questrade.com/trading/account/positions'))
-                        chrome.tabs.executeScript(null, { file: "/libs/jquery-3.3.1.min.js" }, function () {
-                            chrome.tabs.executeScript(null, { file: "/contents/questrade.js" });
+                        chrome.tabs.executeScript(null, { file: '/libs/jquery-3.3.1.min.js' }, function () {
+                            chrome.tabs.executeScript(null, { file: '/contents/questrade.js' });
+                        });
+                    else if (tab.url.startsWith('https://my.wealthsimple.com/app/account'))
+                        chrome.tabs.executeScript(null, { file: '/libs/jquery-3.3.1.min.js' }, function () {
+                            chrome.tabs.executeScript(null, { file: '/contents/wealthsimple.js' });
                         });
                 });
             }

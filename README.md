@@ -7,6 +7,7 @@ Chrome extension for calculating portfolio allocations across multiple brokerage
 
 * Questrade
 * Scotia iTrade
+* Wealthsimple
 
 ## Development
 * To adhere to Chrome's strict CSP, we need to pre-compile templates

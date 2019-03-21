@@ -7,6 +7,9 @@ chrome.runtime.onInstalled.addListener(() => {
         }),
         new chrome.declarativeContent.PageStateMatcher({
           pageUrl: { urlMatches: 'https:\/\/my.questrade.com\/trading\/account\/positions' }
+        }),
+        new chrome.declarativeContent.PageStateMatcher({
+            pageUrl: { urlMatches: 'https:\/\/my.wealthsimple.com\/app\/account' }
         })
       ],
       actions: [new chrome.declarativeContent.ShowPageAction()]
