@@ -4,11 +4,11 @@
     // <div id="itrade_position_repeat:0:j_id709"> -> Canadian Account Positions
     // <div id="itrade_position_repeat:1:j_id709"> -> U.S. Account Positions
 
-    var parseValue = text => text && parseFloat(text.replace(/,/g,''));
-    var parseCurrency = text => text && text.match(/\((.*?)\)/)[1];
-    var safeNavigation = (obj, property) => obj && obj[property];
+    let parseValue = text => text && parseFloat(text.replace(/,/g,''));
+    let parseCurrency = text => text && text.match(/\((.*?)\)/)[1];
+    let safeNavigation = (obj, property) => obj && obj[property];
 
-    var positions = [];
+    let positions = [];
     document.querySelectorAll('[id$="j_id709"]')
       .forEach(container => 
         // table body that holds shares looks like this:
@@ -32,12 +32,12 @@
           })
       );
 
-    var accountName = document.querySelector('.branding-header').querySelector('h3[title]').textContent;
+    let accountName = document.querySelector('.branding-header').querySelector('h3[title]').textContent;
 
     if (!accountName)
         return;
 
-    var getInfo = function () {
+    let getInfo = function () {
         if (!positions.length)
             return 'Positions list is empty.';
 
