@@ -14,6 +14,9 @@ PINSIGHT.console = (function () {
         return parts.join(".");
     };
 
+    
+    var formatDate = date => date.toISOString().split('T')[0];
+
     //#endregion
 
     //#region Mediator
@@ -302,11 +305,43 @@ PINSIGHT.console = (function () {
             var total = allocations.reduce((sum, a) => sum + a.value, 0);
             allocations = allocations
                 .sort((a, b) => b.value - a.value)
-                .map(a => ({ category: a.category, value: formatValue(a.value), percentage: ((a.value / total) * 100).toFixed(1) }));
+                .map(a => ({ category: a.category, value: a.value, percentage: a.value / total }));
 
             this.set('allocations', {
                 items: allocations,
-                total: formatValue(total)
+                total: total
+            });
+        },
+
+        getPortfolioCsv: function () {
+            return Papa.unparse({
+                fields: ['Account', 'Symbol', 'Value', 'Currency', 'Currency Multiplier', 'Currency Normalized Value', 'Category'],
+                data: this.mediator.get('accounts')
+                        .toJSON()
+                        .flatMap(a =>
+                            a.positions.map(p => {
+                                var currency = this.mediator.get('currencies').toJSON().find(c => c.code === p.currency);
+                                var mapping = this.mediator.get('mappings').toJSON().find(m => m.symbol === p.symbol);
+                                return [
+                                    a.name,
+                                    p.symbol,
+                                    p.value,
+                                    p.currency,
+                                    currency && currency.multiplier,
+                                    p.value * ((currency && currency.multiplier) || 1),
+                                    mapping && mapping.category
+                                ]
+                            })
+                        )
+            });
+        },
+
+        getAllocationsCsv: function () {
+            return Papa.unparse({
+                fields: ['Category', 'Value', '% Portfolio'],
+                data: this.get('allocations')
+                    .items
+                    .map(i =>[i.category, i.value, i.percentage])
             });
         }
     });
@@ -511,10 +546,20 @@ PINSIGHT.console = (function () {
               .render().el
             );
 
+            var portfolio = new Portfolio(null, { mediator: this.model });
             this.$('[data-outlet="portfolio"]').append(
               this.addChildren(
                 new PortfolioView({
-                    model: new Portfolio(null, { mediator: this.model })
+                    model: portfolio
+                })
+              )
+              .render().el
+            );
+
+            this.$('[data-outlet="download"]').append(
+              this.addChildren(
+                new DownloadView({
+                    model: portfolio
                 })
               )
               .render().el
@@ -827,11 +872,57 @@ PINSIGHT.console = (function () {
         },
         
         render: function () {
-            this.$el.html(this.template(this.model.get('allocations')));
+            var a = this.model.get('allocations');
+            this.$el.html(this.template({
+                total: formatValue(a.total),
+                items: a.items.map(i => ({
+                    category: i.category,
+                    value: formatValue(i.value),
+                    percentage: (i.percentage * 100).toFixed(1)
+                }))
+            }));
             return this;
         }
     });
     
+    //#endregion
+
+    //#region DownloadView
+
+    var DownloadView = BaseView.extend({
+        template: Handlebars.templates.download,
+
+        events: {
+            'click [data-action="download-portfolio"]': 'onDownloadPortfolioClick',
+            'click [data-action="download-allocations"]': 'onDownloadAllocationsClick'
+        },
+
+        onDownloadPortfolioClick: function() {
+            var blob = new Blob([this.model.getPortfolioCsv()], { type: 'text/csv;charset=utf-8;' });
+            var url = URL.createObjectURL(blob);
+            chrome.downloads.download({
+                url: url,
+                filename: `${formatDate(new Date())} portfolio.csv`,
+                saveAs: true
+            });
+        },
+
+        onDownloadAllocationsClick: function() {
+            var blob = new Blob([this.model.getAllocationsCsv()], { type: 'text/csv;charset=utf-8;' });
+            var url = URL.createObjectURL(blob);
+            chrome.downloads.download({
+                url: url,
+                filename: `${formatDate(new Date())} allocations.csv`,
+                saveAs: true
+            });
+        },
+
+        render: function () {
+            this.$el.html(this.template());
+            return this;
+        }
+    });
+
     //#endregion
 
     return {
