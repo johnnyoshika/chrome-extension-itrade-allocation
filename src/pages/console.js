@@ -319,7 +319,7 @@ PINSIGHT.console = (function () {
 
         getPortfolioCsv: function () {
             return Papa.unparse({
-                fields: ['Account', 'Symbol', 'Value', 'Currency', 'Currency Multiplier', 'Currency Normalized Value', 'Category'],
+                fields: ['Brokerage', 'Account ID', 'Account Name', 'Symbol', 'Value', 'Currency', 'Currency Multiplier', 'Normalized Value', 'Category'],
                 data: this.mediator.get('accounts')
                         .toJSON()
                         .flatMap(a =>
@@ -327,6 +327,8 @@ PINSIGHT.console = (function () {
                                 let currency = this.mediator.get('currencies').toJSON().find(c => c.code === p.currency);
                                 let mapping = this.mediator.get('mappings').toJSON().find(m => m.symbol === p.symbol);
                                 return [
+                                    a.brokerage,
+                                    a.id,
                                     a.name,
                                     p.symbol,
                                     p.value,
