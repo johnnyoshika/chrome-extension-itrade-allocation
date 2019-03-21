@@ -49,6 +49,7 @@
             account: {
                 id: 'scotia-itrade:' + accountName,
                 name: accountName,
+                brokerage: 'Scotia iTrade',
                 positions: positions
             },
             message: {

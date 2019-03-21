@@ -58,6 +58,7 @@
             account: {
                 id: 'questrade:' + accountName,
                 name: accountName,
+                brokerage: 'Questrade',
                 positions: positions
             },
             message: {
