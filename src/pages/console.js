@@ -708,7 +708,8 @@ PINSIGHT.console = (function () {
             this.$('button').prop('disabled', !this.$('input').val().length);
         },
 
-        onEditClick: function () {
+        onEditClick: function (e) {
+            e.preventDefault();
             this.renderForm();
         },
 
@@ -729,7 +730,7 @@ PINSIGHT.console = (function () {
 
         renderForm: function() {
             this.$el.html(this.templateForm(this.model.toJSON()));
-            this.$('input').eq(1).focus();
+            this.$('input').first().focus();
             this.$('button').prop('disabled', !this.$('input').val().length);
         },
 
