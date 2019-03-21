@@ -480,7 +480,7 @@ PINSIGHT.console = (function () {
             if (account)
                 this.model.updateAccount(account, brokerage.get('account').toJSON());
             else
-                this.model.addAccount(brokerage.get('account'));
+                this.model.addAccount(new Account(brokerage.get('account').toJSON()));
         },
 
         render: function () {
