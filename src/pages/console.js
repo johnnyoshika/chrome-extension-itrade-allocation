@@ -713,6 +713,8 @@ PINSIGHT.console = (function () {
             this.editModel();
             if (isNew)
                 this.options.parent.trigger('add-new');
+            else
+                this.render(); // just in case there's no change, we still want to trigger a render
         },
 
         onRemoveClick: function (e) {
