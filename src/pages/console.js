@@ -1,27 +1,27 @@
-var PINSIGHT = window.PINSIGHT || {};
+let PINSIGHT = window.PINSIGHT || {};
 
 PINSIGHT.console = (function () {
 
     //#region HELPERS
 
-    var parseValue = text => text && parseFloat(text.replace(/,/g, ''));
+    let parseValue = text => text && parseFloat(text.replace(/,/g, ''));
 
     // https://stackoverflow.com/a/2901298/188740
-    var formatValue = function (x) {
-        var round2Decimals = x => Math.round(x * 100) / 100;
-        var parts = round2Decimals(x).toString().split(".");
+    let formatValue = function (x) {
+        let round2Decimals = x => Math.round(x * 100) / 100;
+        let parts = round2Decimals(x).toString().split(".");
         parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         return parts.join(".");
     };
 
     
-    var formatDate = date => date.toISOString().split('T')[0];
+    let formatDate = date => date.toISOString().split('T')[0];
 
     //#endregion
 
     //#region Mediator
 
-    var Mediator = Backbone.Model.extend({
+    let Mediator = Backbone.Model.extend({
         initialize: function (attributes, options) {
             this.set('accounts', new Accounts([]));
             this.set('currencies', new Currencies([]));
@@ -39,7 +39,7 @@ PINSIGHT.console = (function () {
                         && this.set('brokerage', new Brokerage(request.brokerage)));
 
                 chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-                    var tab = tabs[0];
+                    let tab = tabs[0];
                     if (tab.url.startsWith('https://www.scotiaonline.scotiabank.com/online/views/accounts/accountDetails/'))
                         chrome.tabs.executeScript(tab.id, { file: '/contents/scotia-itrade.js' });
                     else if (tab.url.startsWith('https://my.questrade.com/trading/account/positions'))
@@ -71,26 +71,26 @@ PINSIGHT.console = (function () {
         },
 
         _storeCollection: function(collection, collectionName) {
-            var obj = {};
+            let obj = {};
             obj[collectionName] = this['_defined' + this._capitalize(collectionName)](collection);
             chrome.storage.sync.set(obj);
         },
 
         _addModelInCollection: function (model, collectionName, at) {
-            var collection = this.get(collectionName);
+            let collection = this.get(collectionName);
             collection.add(model, { merge: true, at: at });
             this._storeCollection(collection, collectionName);
         },
 
         _updateModelInCollection: function(model, collectionName, changes) {
             model.set(changes);
-            var collection = this.get(collectionName);
+            let collection = this.get(collectionName);
             collection.add(model, { merge: true });
             this._storeCollection(collection, collectionName);
         },
 
         _removeModelInCollection: function(model, collectionName) {
-            var collection = this.get(collectionName);
+            let collection = this.get(collectionName);
             collection.remove(model);
             this._storeCollection(collection, collectionName);
         },
@@ -192,13 +192,13 @@ PINSIGHT.console = (function () {
         },
 
         _missingCurrencyCodes: function(currencies) {
-            var defined = currencies.map(c => c.code);
+            let defined = currencies.map(c => c.code);
             return this._portfolioCurrencyCodes()
                 .filter(c => !defined.some(d => d == c));
         },
 
         _missingMappingSymbols: function(mappings) {
-            var mapped = mappings.map(m => m.symbol);
+            let mapped = mappings.map(m => m.symbol);
             return this._portfolioSymbols()
                 .filter(s => !mapped.some(m => m == s));
         },
@@ -212,10 +212,10 @@ PINSIGHT.console = (function () {
 
     //#region Brokerage
 
-    var Message = Backbone.Model.extend({
+    let Message = Backbone.Model.extend({
     });
 
-    var Brokerage = Backbone.Model.extend({
+    let Brokerage = Backbone.Model.extend({
         initialize: function (attributes) {
             this.set('account', new Account(attributes.account));
             this.set('message', new Message(attributes.message));
@@ -226,13 +226,13 @@ PINSIGHT.console = (function () {
 
     //#region Account
 
-    var Account = Backbone.Model.extend({
+    let Account = Backbone.Model.extend({
         defaults: {
             hidden: false
         }
     });
 
-    var Accounts = Backbone.Collection.extend({
+    let Accounts = Backbone.Collection.extend({
         model: Account
     });
 
@@ -240,10 +240,10 @@ PINSIGHT.console = (function () {
 
     //#region Currency
 
-    var Currency = Backbone.Model.extend({
+    let Currency = Backbone.Model.extend({
     });
 
-    var Currencies = Backbone.Collection.extend({
+    let Currencies = Backbone.Collection.extend({
         model: Currency
     });
 
@@ -251,10 +251,10 @@ PINSIGHT.console = (function () {
 
     //#region Mapping
 
-    var Mapping = Backbone.Model.extend({
+    let Mapping = Backbone.Model.extend({
     });
 
-    var Mappings = Backbone.Collection.extend({
+    let Mappings = Backbone.Collection.extend({
         model: Mapping
     });
 
@@ -262,7 +262,7 @@ PINSIGHT.console = (function () {
 
     //#region Portfolio
 
-    var Portfolio = Backbone.Model.extend({
+    let Portfolio = Backbone.Model.extend({
         defaults: {
             allocations: {
                 items: [],
@@ -276,24 +276,24 @@ PINSIGHT.console = (function () {
             this.calculate();
         },
 
-        convertValue: function (value, currency, currencies) {
-            var currency = currencies.find(c => c.code.toUpperCase() === currency.toUpperCase() && _.isNumber(c.multiplier)) || { multiplier: 1 };
+        convertValue: function (value, currencyCode, currencies) {
+            let currency = currencies.find(c => c.code.toUpperCase() === currencyCode.toUpperCase() && _.isNumber(c.multiplier)) || { multiplier: 1 };
             return value * currency.multiplier;
         },
 
         calculate: function () {
-            var currencies = this.mediator.get('currencies').toJSON();
-            var mappings = this.mediator.get('mappings').toJSON();
-            var accounts = this.mediator.get('accounts').toJSON();
-            var positions = accounts.flatMap(account => account.positions);
+            let currencies = this.mediator.get('currencies').toJSON();
+            let mappings = this.mediator.get('mappings').toJSON();
+            let accounts = this.mediator.get('accounts').toJSON();
+            let positions = accounts.flatMap(account => account.positions);
 
-            var allocations = positions
+            let allocations = positions
                 .map(p => ({
                     position: p,
                     mapping: mappings.find(m => m.symbol === p.symbol && !!m.category) || { category: '???', symbol: p.symbol }
                 }))
                 .reduce((allocations, pm) => {
-                    var allocation = allocations.find(a => a.category === pm.mapping.category);
+                    let allocation = allocations.find(a => a.category === pm.mapping.category);
                     if (!allocation) {
                         allocation = { category: pm.mapping.category, value: 0 };
                         allocations.push(allocation);
@@ -302,7 +302,7 @@ PINSIGHT.console = (function () {
                     return allocations;
                 }, []);
 
-            var total = allocations.reduce((sum, a) => sum + a.value, 0);
+            let total = allocations.reduce((sum, a) => sum + a.value, 0);
             allocations = allocations
                 .sort((a, b) => b.value - a.value)
                 .map(a => ({ category: a.category, value: a.value, percentage: a.value / total }));
@@ -320,8 +320,8 @@ PINSIGHT.console = (function () {
                         .toJSON()
                         .flatMap(a =>
                             a.positions.map(p => {
-                                var currency = this.mediator.get('currencies').toJSON().find(c => c.code === p.currency);
-                                var mapping = this.mediator.get('mappings').toJSON().find(m => m.symbol === p.symbol);
+                                let currency = this.mediator.get('currencies').toJSON().find(c => c.code === p.currency);
+                                let mapping = this.mediator.get('mappings').toJSON().find(m => m.symbol === p.symbol);
                                 return [
                                     a.name,
                                     p.symbol,
@@ -350,7 +350,7 @@ PINSIGHT.console = (function () {
 
     //#region BaseView
 
-    var BaseView = function (options) {
+    let BaseView = function (options) {
         this.parent = null;
         this.children = [];
         this.options = options; // as of Backbone 1.1.0, options are no longer automatically attached: https://github.com/jashkenas/backbone/commit/a22cbc7f36f0f7bd2b1d6f62e353e95deb4eda3a
@@ -359,7 +359,7 @@ PINSIGHT.console = (function () {
 
     _.extend(BaseView.prototype, Backbone.View.prototype, {
         addChildren: function (arg) {
-            var children, that = this;
+            let children, that = this;
 
             if (_.isArray(arg)) {
                 children = arg;
@@ -382,8 +382,7 @@ PINSIGHT.console = (function () {
             if (!arg)
                 return;
 
-            var that = this;
-            var children = _.isArray(arg) ? arg : _.toArray(arguments);
+            let children = _.isArray(arg) ? arg : _.toArray(arguments);
 
             _.each(children, function (child) {
                 child.dispose();
@@ -392,7 +391,7 @@ PINSIGHT.console = (function () {
 
         disposeAllChildren: function () {
             // clone first because child is going to reach up into parent (this) and call _removeChild()
-            var clonedChildren = this.children.slice(0);
+            let clonedChildren = this.children.slice(0);
             _.each(clonedChildren, function (child) {
                 child.dispose();
             });
@@ -409,7 +408,7 @@ PINSIGHT.console = (function () {
         },
 
         _removeChild: function (child) {
-            var index = _.indexOf(this.children, child);
+            let index = _.indexOf(this.children, child);
             if (index !== -1)
                 this.children.splice(index, 1);
         }
@@ -421,7 +420,7 @@ PINSIGHT.console = (function () {
 
     //#region PopupView
 
-    var PopupView = BaseView.extend({
+    let PopupView = BaseView.extend({
         template: Handlebars.templates.popup,
 
         events: {
@@ -462,7 +461,7 @@ PINSIGHT.console = (function () {
 
     //#region BrokerageView
 
-    var BrokerageView = BaseView.extend({
+    let BrokerageView = BaseView.extend({
         template: Handlebars.templates.brokerage,
 
         initialize: function () {
@@ -475,8 +474,8 @@ PINSIGHT.console = (function () {
         },
 
         onAddClick: function (e) {
-            var brokerage = this.model.get('brokerage');
-            var account = this.model.get('accounts').get(brokerage.get('account').id);
+            let brokerage = this.model.get('brokerage');
+            let account = this.model.get('accounts').get(brokerage.get('account').id);
             if (account)
                 this.model.updateAccount(account, brokerage.get('account').toJSON());
             else
@@ -486,7 +485,7 @@ PINSIGHT.console = (function () {
         render: function () {
             this.disposeAllChildren();
 
-            var brokerage = this.model.get('brokerage');
+            let brokerage = this.model.get('brokerage');
             this.$el.html(this.template({
                 info: brokerage && brokerage.get('message').get('info'),
                 error: brokerage && brokerage.get('message').get('error'),
@@ -510,7 +509,7 @@ PINSIGHT.console = (function () {
 
     //#region DashboardView
 
-    var DashboardView = BaseView.extend({
+    let DashboardView = BaseView.extend({
         template: Handlebars.templates.dashboard,
 
         render: function () {
@@ -546,7 +545,7 @@ PINSIGHT.console = (function () {
               .render().el
             );
 
-            var portfolio = new Portfolio(null, { mediator: this.model });
+            let portfolio = new Portfolio(null, { mediator: this.model });
             this.$('[data-outlet="portfolio"]').append(
               this.addChildren(
                 new PortfolioView({
@@ -573,7 +572,7 @@ PINSIGHT.console = (function () {
 
     //#region AccountsView
 
-    var AccountsView = BaseView.extend({
+    let AccountsView = BaseView.extend({
         template: Handlebars.templates.accounts,
 
         initialize: function() {
@@ -608,7 +607,7 @@ PINSIGHT.console = (function () {
 
     //#region AccountView
 
-    var AccountView = BaseView.extend({
+    let AccountView = BaseView.extend({
         template: Handlebars.templates.account,
 
         initialize: function () {
@@ -631,7 +630,7 @@ PINSIGHT.console = (function () {
         },
 
         onModelChange: function (model) {
-            var keys = Object.keys(model.changed);
+            let keys = Object.keys(model.changed);
             if (keys.length === 1 && keys.includes('hidden'))
             {
                 if (this.model.get('hidden'))
@@ -661,7 +660,7 @@ PINSIGHT.console = (function () {
         },
 
         render: function () {
-            var json = this.model.toJSON();
+            let json = this.model.toJSON();
             json.positions = json.positions.map(p => ({
                 symbol: p.symbol,
                 value: formatValue(p.value),
@@ -680,7 +679,7 @@ PINSIGHT.console = (function () {
 
     //#region ItemView
 
-    var ItemView = BaseView.extend({
+    let ItemView = BaseView.extend({
         tagName: 'tr',
 
         initialize: function () {
@@ -708,7 +707,7 @@ PINSIGHT.console = (function () {
         },
 
         onSubmit: function (e) {
-            var isNew = this.isNew();
+            let isNew = this.isNew();
             e.preventDefault();
             this.editModel();
             if (isNew)
@@ -746,7 +745,7 @@ PINSIGHT.console = (function () {
 
     //#region CurrencyView
 
-    var CurrencyView = ItemView.extend({
+    let CurrencyView = ItemView.extend({
         template: Handlebars.templates.currency,
         templateForm: Handlebars.templates.currencyForm,
 
@@ -769,7 +768,7 @@ PINSIGHT.console = (function () {
 
     //#region MappingView
 
-    var MappingView = ItemView.extend({
+    let MappingView = ItemView.extend({
         template: Handlebars.templates.mapping,
         templateForm: Handlebars.templates.mappingForm,
 
@@ -792,7 +791,7 @@ PINSIGHT.console = (function () {
 
     //#region ItemsView
 
-    var ItemsView = BaseView.extend({
+    let ItemsView = BaseView.extend({
         initialize: function () {
             this.listenTo(this.collection, 'add remove reset sort', this.render);
             this.listenTo(this, 'add-new', this.onAddNew);
@@ -826,7 +825,7 @@ PINSIGHT.console = (function () {
 
     //#region CurrenciesView
 
-    var CurrenciesView = ItemsView.extend({
+    let CurrenciesView = ItemsView.extend({
         template: Handlebars.templates.currencies,
         templateForm: Handlebars.templates.currencyForm,
         templateAddButton: Handlebars.templates.currenciesAddButton,
@@ -846,7 +845,7 @@ PINSIGHT.console = (function () {
 
     //#region MappingsView
 
-    var MappingsView = ItemsView.extend({
+    let MappingsView = ItemsView.extend({
         template: Handlebars.templates.mappings,
         templateForm: Handlebars.templates.mappingForm,
         templateAddButton: Handlebars.templates.mappingsAddButton,
@@ -866,7 +865,7 @@ PINSIGHT.console = (function () {
 
     //#region PortfolioView
 
-    var PortfolioView = BaseView.extend({
+    let PortfolioView = BaseView.extend({
         template: Handlebars.templates.portfolio,
 
         initialize: function () {
@@ -874,7 +873,7 @@ PINSIGHT.console = (function () {
         },
         
         render: function () {
-            var a = this.model.get('allocations');
+            let a = this.model.get('allocations');
             this.$el.html(this.template({
                 total: formatValue(a.total),
                 items: a.items.map(i => ({
@@ -891,7 +890,7 @@ PINSIGHT.console = (function () {
 
     //#region DownloadView
 
-    var DownloadView = BaseView.extend({
+    let DownloadView = BaseView.extend({
         template: Handlebars.templates.download,
 
         events: {
@@ -900,8 +899,8 @@ PINSIGHT.console = (function () {
         },
 
         onDownloadPortfolioClick: function() {
-            var blob = new Blob([this.model.getPortfolioCsv()], { type: 'text/csv;charset=utf-8;' });
-            var url = URL.createObjectURL(blob);
+            let blob = new Blob([this.model.getPortfolioCsv()], { type: 'text/csv;charset=utf-8;' });
+            let url = URL.createObjectURL(blob);
             chrome.downloads.download({
                 url: url,
                 filename: `${formatDate(new Date())} portfolio.csv`,
@@ -910,8 +909,8 @@ PINSIGHT.console = (function () {
         },
 
         onDownloadAllocationsClick: function() {
-            var blob = new Blob([this.model.getAllocationsCsv()], { type: 'text/csv;charset=utf-8;' });
-            var url = URL.createObjectURL(blob);
+            let blob = new Blob([this.model.getAllocationsCsv()], { type: 'text/csv;charset=utf-8;' });
+            let url = URL.createObjectURL(blob);
             chrome.downloads.download({
                 url: url,
                 filename: `${formatDate(new Date())} allocations.csv`,
