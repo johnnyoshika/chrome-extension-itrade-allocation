@@ -1,10 +1,10 @@
 (function () {
 
-    var parseValue = text => text && parseFloat(text.replace(/,/g, ''));
-    var viewport= null;
+    let parseValue = text => text && parseFloat(text.replace(/,/g, ''));
+    let viewport = null;
 
     // Need at least symbol and market value. User will need to edit columns to add currency.
-    var positions = $('table')
+    let positions = $('table')
         .has('th[data-qt="lblPositionsSymbol"]')
         .has('th[data-qt="lblPositionsMarketValue"]')
         .find('tbody tr')
@@ -34,12 +34,12 @@
             viewport = 'narrow';
     }
 
-    var accountName = $('[data-qt="lblSelectorName"]').first().text();
+    let accountName = $('[data-qt="lblSelectorName"]').first().text();
 
     if (!accountName)
         return;
 
-    var getInfo = function () {
+    let getInfo = function () {
         if (!positions.length)
             return 'Positions list is empty.';
 
