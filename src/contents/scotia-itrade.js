@@ -18,7 +18,20 @@
                     value: parseValue($(element).find('[id$="j_id849"]').text()),
                     currency: parseCurrency(subtotalRow.find('.text').text())
                 })).toArray();
-        }).toArray().flatMap(a => a);
+        })
+        .toArray()
+        .flatMap(a => a)
+        .concat(
+            $('table[summary="summary balance"]')
+                .children('tbody') // children b/c there is another tbody buried deep inside tfoot
+                .find('tr')
+                .map((index, element) => ({
+                    ticker: 'CASH',
+                    value: parseValue($(element).find('[id$="j_id515"]').text()),
+                    currency: $(element).find('th[scope="row"]').text()
+                }))
+                .toArray()
+        );
 
     let accountName = $('.branding-header').find('h3[title]').text();
 
