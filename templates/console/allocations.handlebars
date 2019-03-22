@@ -1,13 +1,13 @@
 <div class="card mb-4">
     <div class="card-header">
-        Portfolio Allocations
+        Asset Allocations
     </div>
     <div class="card-body">
         {{#if items.length}}
             <table class="table table-sm">
                 <thead>
                     <tr>
-                        <th scope="col">Category</th>
+                        <th scope="col">Asset Class</th>
                         <th scope="col">Value</th>
                         <th scope="col">% Portfolio</th>
                     </tr>
@@ -15,7 +15,7 @@
                 <tbody>
                     {{#each items}}
                     <tr>
-                        <td>{{category}}</td>
+                        <td>{{assetClass}}</td>
                         <td>${{value}}</td>
                         <td>{{percentage}}%</td>
                     </tr>

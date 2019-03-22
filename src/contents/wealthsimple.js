@@ -5,12 +5,12 @@
         .has('.holding')
         .has('ws-fancy-currency')
         .map((index, element) => ({
-            symbol: $(element).find('.holding').text().toUpperCase(),
+            ticker: $(element).find('.holding').text().toUpperCase(),
             value: parseValue($(element).find('ws-fancy-currency').attr('number')),
             currency: 'CAD'
         }))
         .toArray()
-        .filter(p => p.symbol !== 'CASH');
+        .filter(p => p.ticker !== 'CASH');
 
     let accountId = new URL(document.location).searchParams.get('portfolio_id');
     if (!accountId)
