@@ -6,33 +6,21 @@
 
     let parseValue = text => text && parseFloat(text.replace(/,/g,''));
     let parseCurrency = text => text && text.match(/\((.*?)\)/)[1];
-    let safeNavigation = (obj, property) => obj && obj[property];
+    
+    let positions = $('[id$="j_id709"]')
+        .find('tbody.var-acct-det-hst-expand-cat')
+        .map((index, element) => {
+            let rows = $(element).find('tr:not([id])');
+            let subtotalRow = rows.last();
+            return rows.filter(':not(:last)')
+                .map((index, element) => ({
+                    ticker: $(element).find('[id$="j_id792"]').text(),
+                    value: parseValue($(element).find('[id$="j_id849"]').text()),
+                    currency: parseCurrency(subtotalRow.find('.text').text())
+                })).toArray();
+        }).toArray().flatMap(a => a);
 
-    let positions = [];
-    document.querySelectorAll('[id$="j_id709"]')
-      .forEach(container => 
-        // table body that holds shares looks like this:
-        // <tbody class="var-acct-det-hst-expand-cat">
-        container.querySelectorAll('tbody.var-acct-det-hst-expand-cat')
-          .forEach(tbody => {
-            // There are 2 tr for each holding, and one last tr for subtotal.
-            // Of the 2 tr, only the first one <tr> is what we want.
-            // I don't know what the other tr (which looks like <tr id="accountHoldings-Official...") is for.
-            tbody.querySelectorAll('tr:not([id])').forEach((tr, index, array) => {
-              // The last one is the subtotal row
-              if (index >= array.length - 1)
-                return;
-          
-              positions.push({
-                ticker: safeNavigation(tr.querySelector('[id$="j_id792"]'), 'textContent'),
-                value: parseValue(safeNavigation(tr.querySelector('[id$="j_id849"]'), 'textContent')),
-                currency: parseCurrency(safeNavigation(array[array.length-1].querySelector('.text'), 'textContent'))
-              });
-            })
-          })
-      );
-
-    let accountName = document.querySelector('.branding-header').querySelector('h3[title]').textContent;
+    let accountName = $('.branding-header').find('h3[title]').text();
 
     if (!accountName)
         return;
