@@ -150,7 +150,7 @@ PINSIGHT.console = (function () {
         _definedMappings: function (mappings) {
             return mappings
                 .toJSON()
-                .filter(m => !!m.category);
+                .filter(m => !!m.assetClass);
         },
 
         _setMappings: function (mappings) {
@@ -294,12 +294,12 @@ PINSIGHT.console = (function () {
             let allocations = positions
                 .map(p => ({
                     position: p,
-                    mapping: mappings.find(m => m.ticker === p.ticker && !!m.category) || { category: '???', ticker: p.ticker }
+                    mapping: mappings.find(m => m.ticker === p.ticker && !!m.assetClass) || { assetClass: '???', ticker: p.ticker }
                 }))
                 .reduce((allocations, pm) => {
-                    let allocation = allocations.find(a => a.category === pm.mapping.category);
+                    let allocation = allocations.find(a => a.assetClass === pm.mapping.assetClass);
                     if (!allocation) {
-                        allocation = { category: pm.mapping.category, value: 0 };
+                        allocation = { assetClass: pm.mapping.assetClass, value: 0 };
                         allocations.push(allocation);
                     }
                     allocation.value += this.convertValue(pm.position.value, pm.position.currency, currencies);
@@ -309,7 +309,7 @@ PINSIGHT.console = (function () {
             let total = allocations.reduce((sum, a) => sum + a.value, 0);
             allocations = allocations
                 .sort((a, b) => b.value - a.value)
-                .map(a => ({ category: a.category, value: a.value, percentage: a.value / total }));
+                .map(a => ({ assetClass: a.assetClass, value: a.value, percentage: a.value / total }));
 
             this.set('allocations', {
                 items: allocations,
@@ -319,7 +319,7 @@ PINSIGHT.console = (function () {
 
         getPortfolioCsv: function () {
             return Papa.unparse({
-                fields: ['Brokerage', 'Account ID', 'Account Name', 'Ticker', 'Value', 'Currency', 'Currency Multiplier', 'Normalized Value', 'Category'],
+                fields: ['Brokerage', 'Account ID', 'Account Name', 'Ticker', 'Value', 'Currency', 'Currency Multiplier', 'Normalized Value', 'Asset Class'],
                 data: this.mediator.get('accounts')
                         .toJSON()
                         .flatMap(a =>
@@ -335,7 +335,7 @@ PINSIGHT.console = (function () {
                                     p.currency,
                                     currency && currency.multiplier,
                                     p.value * ((currency && currency.multiplier) || 1),
-                                    mapping && mapping.category
+                                    mapping && mapping.assetClass
                                 ]
                             })
                         )
@@ -344,10 +344,10 @@ PINSIGHT.console = (function () {
 
         getAllocationsCsv: function () {
             return Papa.unparse({
-                fields: ['Category', 'Value', '% Portfolio'],
+                fields: ['Asset Class', 'Value', '% Portfolio'],
                 data: this.get('allocations')
                     .items
-                    .map(i =>[i.category, i.value, i.percentage])
+                    .map(i =>[i.assetClass, i.value, i.percentage])
             });
         }
     });
@@ -781,12 +781,12 @@ PINSIGHT.console = (function () {
 
         editModel: function () {
             this.options.mediator.updateMapping(this.model, {
-                category: this.$('[name="category"]').val()
+                assetClass: this.$('[name="assetClass"]').val()
             });
         },
 
         isNew: function () {
-            return !this.model.get('category');
+            return !this.model.get('assetClass');
         },
 
         removeModel: function (e) {
@@ -863,7 +863,7 @@ PINSIGHT.console = (function () {
             this.options.mediator.addMapping(new Mapping({
                 id: this.$('[name="ticker"]').val().toUpperCase(),
                 ticker: this.$('[name="ticker"]').val().toUpperCase(),
-                category: this.$('[name="category"]').val()
+                assetClass: this.$('[name="assetClass"]').val()
             }));
         }
     });
@@ -884,7 +884,7 @@ PINSIGHT.console = (function () {
             this.$el.html(this.template({
                 total: formatValue(a.total),
                 items: a.items.map(i => ({
-                    category: i.category,
+                    assetClass: i.assetClass,
                     value: formatValue(i.value),
                     percentage: (i.percentage * 100).toFixed(1)
                 }))
