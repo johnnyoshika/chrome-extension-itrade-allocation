@@ -26,7 +26,7 @@ PINSIGHT.console = (function () {
             this.set('accounts', new Accounts([]));
             this.set('currencies', new Currencies([]));
             this.set('mappings', new Mappings([]));
-            this.listenTo(this.get('accounts'), 'add remove reset', this._onAccountsChange);
+            this.listenTo(this.get('accounts'), 'add remove update reset', this._onAccountsChange);
 
             chrome.storage.sync.get(['accounts', 'currencies', 'mappings'], data => this._setValues(data));
 
@@ -584,7 +584,7 @@ PINSIGHT.console = (function () {
         template: Handlebars.templates.accounts,
 
         initialize: function() {
-            this.listenTo(this.collection, 'add remove reset sort', this.render);
+            this.listenTo(this.collection, 'add remove update reset sort', this.render);
         },
 
         render: function () {
