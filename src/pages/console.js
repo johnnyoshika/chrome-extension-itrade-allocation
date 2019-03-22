@@ -552,9 +552,9 @@ PINSIGHT.console = (function () {
             );
 
             let portfolio = new Portfolio(null, { mediator: this.model });
-            this.$('[data-outlet="portfolio"]').append(
+            this.$('[data-outlet="allocations"]').append(
               this.addChildren(
-                new PortfolioView({
+                new AllocationsView({
                     model: portfolio
                 })
               )
@@ -870,10 +870,10 @@ PINSIGHT.console = (function () {
 
     //#endregion
 
-    //#region PortfolioView
+    //#region AllocationsView
 
-    let PortfolioView = BaseView.extend({
-        template: Handlebars.templates.portfolio,
+    let AllocationsView = BaseView.extend({
+        template: Handlebars.templates.allocations,
 
         initialize: function () {
             this.listenTo(this.model, 'change:allocations', this.render);
