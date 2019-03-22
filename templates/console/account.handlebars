@@ -11,7 +11,7 @@
     <table class="table table-sm">
         <thead>
             <tr>
-                <th scope="col">Symbol</th>
+                <th scope="col">Ticker</th>
                 <th scope="col">Value</th>
                 <th scope="col">Currency</th>
             </tr>
@@ -19,7 +19,7 @@
         <tbody>
             {{#each account.positions}}
             <tr>
-                <td>{{symbol}}</td>
+                <td>{{ticker}}</td>
                 <td>${{value}}</td>
                 <td>{{currency}}</td>
             </tr>

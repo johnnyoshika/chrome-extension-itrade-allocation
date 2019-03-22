@@ -24,7 +24,7 @@
                 return;
           
               positions.push({
-                symbol: safeNavigation(tr.querySelector('[id$="j_id792"]'), 'textContent'),
+                ticker: safeNavigation(tr.querySelector('[id$="j_id792"]'), 'textContent'),
                 value: parseValue(safeNavigation(tr.querySelector('[id$="j_id849"]'), 'textContent')),
                 currency: parseCurrency(safeNavigation(array[array.length-1].querySelector('.text'), 'textContent'))
               });

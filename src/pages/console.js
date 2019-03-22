@@ -156,10 +156,10 @@ PINSIGHT.console = (function () {
         _setMappings: function (mappings) {
             this.get('mappings').set(
                 mappings.concat(
-                    this._missingMappingSymbols(mappings).map(symbol =>
+                    this._missingMappingTickers(mappings).map(ticker =>
                         new Mapping({
-                            id: symbol,
-                            symbol: symbol
+                            id: ticker,
+                            ticker: ticker
                         }))));
         },
 
@@ -188,11 +188,11 @@ PINSIGHT.console = (function () {
                 .filter(c => !!c));
         },
 
-        _portfolioSymbols: function() {
+        _portfolioTickers: function () {
             return _.uniq(this.get('accounts')
                 .toJSON()
                 .flatMap(a => a.positions)
-                .map(p => p.symbol));
+                .map(p => p.ticker));
         },
 
         _missingCurrencyCodes: function(currencies) {
@@ -201,10 +201,10 @@ PINSIGHT.console = (function () {
                 .filter(c => !defined.some(d => d == c));
         },
 
-        _missingMappingSymbols: function(mappings) {
-            let mapped = mappings.map(m => m.symbol);
-            return this._portfolioSymbols()
-                .filter(s => !mapped.some(m => m == s));
+        _missingMappingTickers: function (mappings) {
+            let mapped = mappings.map(m => m.ticker);
+            return this._portfolioTickers()
+                .filter(t => !mapped.some(m => m == t));
         },
 
         goToDashboard: function () {
@@ -294,7 +294,7 @@ PINSIGHT.console = (function () {
             let allocations = positions
                 .map(p => ({
                     position: p,
-                    mapping: mappings.find(m => m.symbol === p.symbol && !!m.category) || { category: '???', symbol: p.symbol }
+                    mapping: mappings.find(m => m.ticker === p.ticker && !!m.category) || { category: '???', ticker: p.ticker }
                 }))
                 .reduce((allocations, pm) => {
                     let allocation = allocations.find(a => a.category === pm.mapping.category);
@@ -319,18 +319,18 @@ PINSIGHT.console = (function () {
 
         getPortfolioCsv: function () {
             return Papa.unparse({
-                fields: ['Brokerage', 'Account ID', 'Account Name', 'Symbol', 'Value', 'Currency', 'Currency Multiplier', 'Normalized Value', 'Category'],
+                fields: ['Brokerage', 'Account ID', 'Account Name', 'Ticker', 'Value', 'Currency', 'Currency Multiplier', 'Normalized Value', 'Category'],
                 data: this.mediator.get('accounts')
                         .toJSON()
                         .flatMap(a =>
                             a.positions.map(p => {
                                 let currency = this.mediator.get('currencies').toJSON().find(c => c.code === p.currency);
-                                let mapping = this.mediator.get('mappings').toJSON().find(m => m.symbol === p.symbol);
+                                let mapping = this.mediator.get('mappings').toJSON().find(m => m.ticker === p.ticker);
                                 return [
                                     a.brokerage,
                                     a.id,
                                     a.name,
-                                    p.symbol,
+                                    p.ticker,
                                     p.value,
                                     p.currency,
                                     currency && currency.multiplier,
@@ -668,7 +668,7 @@ PINSIGHT.console = (function () {
         render: function () {
             let json = this.model.toJSON();
             json.positions = json.positions.map(p => ({
-                symbol: p.symbol,
+                ticker: p.ticker,
                 value: formatValue(p.value),
                 currency: p.currency
             }));
@@ -861,8 +861,8 @@ PINSIGHT.console = (function () {
 
         addModel: function (e) {
             this.options.mediator.addMapping(new Mapping({
-                id: this.$('[name="symbol"]').val().toUpperCase(),
-                symbol: this.$('[name="symbol"]').val().toUpperCase(),
+                id: this.$('[name="ticker"]').val().toUpperCase(),
+                ticker: this.$('[name="ticker"]').val().toUpperCase(),
                 category: this.$('[name="category"]').val()
             }));
         }
