@@ -584,7 +584,18 @@ PINSIGHT.console = (function () {
         template: Handlebars.templates.accounts,
 
         initialize: function() {
-            this.listenTo(this.collection, 'add remove update reset sort', this.render);
+            this.listenTo(this.collection, 'add remove reset sort', this.render);
+            this.listenTo(this.collection, 'update', this.onUpdate);
+        },
+
+        onUpdate: function (collection, changes) {
+            // This is complicated. If the change was just the 'hidden' property, we don't want to re-render b/c we want to let AccountView
+            // animate showing/hiding. If however, brokerage name or positions changed, then we want to re-render.
+            // If just hidden changed, all of the collection.models.changed objects would all be {}.
+            // If anything else changed (e.g. positions), then one of the collection.models.changed objects will be populated {positions:[...], hidden: false}
+            // so all we need to do is check for a presence in models.changed and if there's something there, render
+            if (collection.models.some(m => Object.keys(m.changed).length))
+                this.render();
         },
 
         render: function () {
