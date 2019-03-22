@@ -9,8 +9,7 @@
             value: parseValue($(element).find('ws-fancy-currency').attr('number')),
             currency: 'CAD'
         }))
-        .toArray()
-        .filter(p => p.ticker !== 'CASH');
+        .toArray();
 
     let accountId = new URL(document.location).searchParams.get('portfolio_id');
     if (!accountId)
