@@ -6,6 +6,9 @@ chrome.runtime.onInstalled.addListener(() => {
           pageUrl: { urlMatches: 'https:\/\/www\.scotiaonline\.scotiabank\.com\/online\/views\/accounts\/accountDetails\/.+' }
         }),
         new chrome.declarativeContent.PageStateMatcher({
+            pageUrl: { urlMatches: 'https:\/\/my.questrade.com\/trading\/account\/balances' }
+        }),
+        new chrome.declarativeContent.PageStateMatcher({
           pageUrl: { urlMatches: 'https:\/\/my.questrade.com\/trading\/account\/positions' }
         }),
         new chrome.declarativeContent.PageStateMatcher({
