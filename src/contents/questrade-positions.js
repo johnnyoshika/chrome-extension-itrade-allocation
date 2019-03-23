@@ -1,6 +1,6 @@
 (function () {
 
-    let parseValue = text => text && parseFloat(text.replace(/,/g, ''));
+    let parseValue = text => text && parseFloat(text.replace(/[,$]/g, ''));
     let viewport = null;
 
     // Need at least ticker and market value. User will need to edit columns to add currency.

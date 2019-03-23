@@ -4,7 +4,7 @@ PINSIGHT.console = (function () {
 
     //#region HELPERS
 
-    let parseValue = text => text && parseFloat(text.replace(/,/g, ''));
+    let parseValue = text => text && parseFloat(text.replace(/[,$]/g, ''));
 
     // https://stackoverflow.com/a/2901298/188740
     let formatValue = function (x) {
@@ -44,6 +44,8 @@ PINSIGHT.console = (function () {
                         this._executeScript('/contents/scotia-itrade.js');
                     else if (tab.url.startsWith('https://my.questrade.com/trading/account/positions'))
                         this._executeScript('/contents/questrade-positions.js');
+                    else if (tab.url.startsWith('https://my.questrade.com/trading/account/balances'))
+                        this._executeScript('/contents/questrade-balances.js');
                     else if (tab.url.startsWith('https://my.wealthsimple.com/app/account'))
                         this._executeScript('/contents/wealthsimple.js');
                 });

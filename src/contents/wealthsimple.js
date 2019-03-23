@@ -1,5 +1,5 @@
 (function () {
-    let parseValue = text => text && parseFloat(text.replace(/,/g, ''));
+    let parseValue = text => text && parseFloat(text.replace(/[,$]/g, ''));
 
     let positions = $('.asset-allocation-table tbody tr')
         .has('.holding')

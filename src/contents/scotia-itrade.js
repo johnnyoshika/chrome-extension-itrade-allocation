@@ -4,7 +4,7 @@
     // <div id="itrade_position_repeat:0:j_id709"> -> Canadian Account Positions
     // <div id="itrade_position_repeat:1:j_id709"> -> U.S. Account Positions
 
-    let parseValue = text => text && parseFloat(text.replace(/,/g,''));
+    let parseValue = text => text && parseFloat(text.replace(/[,$]/g, ''));
     let parseCurrency = text => text && text.match(/\((.*?)\)/)[1];
     
     let positions = $('[id$="j_id709"]')
