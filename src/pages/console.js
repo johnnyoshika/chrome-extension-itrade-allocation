@@ -43,7 +43,7 @@ PINSIGHT.console = (function () {
                     if (tab.url.startsWith('https://www.scotiaonline.scotiabank.com/online/views/accounts/accountDetails/'))
                         this._executeScript('/contents/scotia-itrade.js');
                     else if (tab.url.startsWith('https://my.questrade.com/trading/account/positions'))
-                        this._executeScript('/contents/questrade.js');
+                        this._executeScript('/contents/questrade-positions.js');
                     else if (tab.url.startsWith('https://my.wealthsimple.com/app/account'))
                         this._executeScript('/contents/wealthsimple.js');
                 });
