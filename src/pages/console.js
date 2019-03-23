@@ -236,7 +236,8 @@ PINSIGHT.console = (function () {
 
     let Account = Backbone.Model.extend({
         defaults: {
-            hidden: false
+            hidden: false,
+            type: null // cash-only, excludes-cash
         }
     });
 
@@ -487,9 +488,26 @@ PINSIGHT.console = (function () {
             let brokerage = this.model.get('brokerage');
             let account = this.model.get('accounts').get(brokerage.get('account').id);
             if (account)
-                this.model.updateAccount(account, brokerage.get('account').toJSON());
+                this.model.updateAccount(account, this.replacementJSON(account, brokerage.get('account')));
             else
                 this.model.addAccount(new Account(brokerage.get('account').toJSON()));
+        },
+
+        replacementJSON: function (account, brokerageAccount) {
+            var json = brokerageAccount.toJSON();
+            json.positions = this.replacementPositions(account.get('positions'), brokerageAccount.get('positions'), brokerageAccount.get('type'));
+            return json;
+        },
+
+        replacementPositions: function(accountPositions, brokeragePositions, type) {
+            switch (type) {
+                case 'cash-only':
+                    return accountPositions.filter(p => p.ticker !== 'CASH').concat(brokeragePositions);
+                case 'excludes-cash':
+                    return accountPositions.filter(p => p.ticker === 'CASH').concat(brokeragePositions);
+                default:
+                    return brokeragePositions;
+            }
         },
 
         render: function () {

@@ -59,7 +59,8 @@
                 id: 'questrade:' + accountName,
                 name: accountName,
                 brokerage: 'Questrade',
-                positions: positions
+                positions: positions,
+                type: 'excludes-cash'
             },
             message: {
                 error: null,

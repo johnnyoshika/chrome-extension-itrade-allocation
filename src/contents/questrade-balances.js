@@ -18,7 +18,8 @@
                 positions: [
                     { ticker: 'CASH', value: cad, currency: 'CAD' },
                     { ticker: 'CASH', value: usd, currency: 'USD' }
-                ]
+                ],
+                type: 'cash-only'
             },
             message: {
                 error: null,
