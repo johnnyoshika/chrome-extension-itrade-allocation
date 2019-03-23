@@ -154,7 +154,7 @@ PINSIGHT.console = (function () {
         _definedMappings: function (mappings) {
             return mappings
                 .toJSON()
-                .filter(m => !!m.assetClass);
+                .filter(m => !!m.assetClasses.length);
         },
 
         _setMappings: function (mappings) {
@@ -261,6 +261,13 @@ PINSIGHT.console = (function () {
     //#region Mapping
 
     let Mapping = Backbone.Model.extend({
+        defaults: {
+            assetClasses: []
+        },
+
+        isMultiAsset: function() {
+            return this.get('assetClasses').length > 1;
+        }
     });
 
     let Mappings = Backbone.Collection.extend({
@@ -299,17 +306,26 @@ PINSIGHT.console = (function () {
             let allocations = positions
                 .map(p => ({
                     position: p,
-                    mapping: mappings.find(m => m.ticker === p.ticker && !!m.assetClass) || { assetClass: '???', ticker: p.ticker }
+                    mapping: mappings.find(m => m.ticker === p.ticker && !!m.assetClasses.length)
+                        ||
+                        {
+                            ticker: p.ticker,
+                            assetClasses: [{
+                                name: '???',
+                                percentage: 1
+                            }]
+                        }
                 }))
-                .reduce((allocations, pm) => {
-                    let allocation = allocations.find(a => a.assetClass === pm.mapping.assetClass);
-                    if (!allocation) {
-                        allocation = { assetClass: pm.mapping.assetClass, value: 0 };
-                        allocations.push(allocation);
-                    }
-                    allocation.value += this.convertValue(pm.position.value, pm.position.currency, currencies);
-                    return allocations;
-                }, []);
+                .reduce((allocations, pm) =>
+                    pm.mapping.assetClasses.reduce((allocations, assetClass) => {
+                        let allocation = allocations.find(a => a.assetClass === assetClass.name);
+                        if (!allocation) {
+                            allocation = { assetClass: assetClass.name, value: 0 };
+                            allocations.push(allocation);
+                        }
+                        allocation.value += this.convertValue(pm.position.value * assetClass.percentage, pm.position.currency, currencies);
+                        return allocations;
+                    }, allocations), []);
 
             let total = allocations.reduce((sum, a) => sum + a.value, 0);
             allocations = allocations
@@ -328,20 +344,23 @@ PINSIGHT.console = (function () {
                 data: this.mediator.get('accounts')
                         .toJSON()
                         .flatMap(a =>
-                            a.positions.map(p => {
+                            a.positions.flatMap(p => {
                                 let currency = this.mediator.get('currencies').toJSON().find(c => c.code === p.currency);
-                                let mapping = this.mediator.get('mappings').toJSON().find(m => m.ticker === p.ticker);
-                                return [
-                                    a.brokerage,
-                                    a.id,
-                                    a.name,
-                                    p.ticker,
-                                    p.value,
-                                    p.currency,
-                                    currency && currency.multiplier,
-                                    p.value * ((currency && currency.multiplier) || 1),
-                                    mapping && mapping.assetClass
-                                ]
+                                let mapping = this.mediator.get('mappings').toJSON().find(m => m.ticker === p.ticker) || { assetClasses: { percentage: 1 } };
+                                return mapping.assetClasses.map(ac => {
+                                    let value = p.value * ac.percentage;
+                                    return [
+                                        a.brokerage,
+                                        a.id,
+                                        a.name,
+                                        p.ticker,
+                                        value,
+                                        p.currency,
+                                        currency && currency.multiplier,
+                                        value * ((currency && currency.multiplier) || 1),
+                                        ac.name
+                                    ];
+                                });
                             })
                         )
             });
@@ -761,14 +780,18 @@ PINSIGHT.console = (function () {
             this.removeModel();
         },
 
+        getViewModel: function() {
+            return this.model.toJSON();
+        },
+
         renderForm: function() {
-            this.$el.html(this.templateForm(this.model.toJSON()));
+            this.$el.html(this.templateForm(this.getViewModel()));
             this.$('input').first().focus();
             this.$('button').prop('disabled', !this.$('input').val().length);
         },
 
         renderDetails() {
-            this.$el.html(this.template(this.model.toJSON()));
+            this.$el.html(this.template(this.getViewModel()));
         },
 
         render: function () {
@@ -814,16 +837,34 @@ PINSIGHT.console = (function () {
 
         editModel: function () {
             this.options.mediator.updateMapping(this.model, {
-                assetClass: this.$('[name="assetClass"]').val()
+                assetClasses: this.$('[name^="name"]').map((index, element) => {
+                    let i = $(element).attr('name').match(/name\[(\d{1,})\]/)[1];
+                    return {
+                        name: $(element).val(),
+                        percentage: parseValue($(element).siblings(`[name="percentage[${i}]"]`).val()) / 100
+                    };
+                }).toArray()
             });
         },
 
         isNew: function () {
-            return !this.model.get('assetClass');
+            return !this.model.get('assetClasses').length;
         },
 
         removeModel: function (e) {
             this.options.mediator.removeMapping(this.model);
+        },
+
+        getViewModel: function () {
+            var json = this.model.toJSON();
+            json.isMultiAsset = this.model.isMultiAsset();
+            json.assetClasses = json.assetClasses.length
+                ? json.assetClasses.map(ac => ({
+                    name: ac.name,
+                    percentage: (ac.percentage * 100).toFixed(1)
+                }))
+                : [{}];
+            return json;
         }
     });
 
@@ -896,7 +937,10 @@ PINSIGHT.console = (function () {
             this.options.mediator.addMapping(new Mapping({
                 id: this.$('[name="ticker"]').val().toUpperCase(),
                 ticker: this.$('[name="ticker"]').val().toUpperCase(),
-                assetClass: this.$('[name="assetClass"]').val()
+                assetClasses: [{
+                    name: this.$('[name="assetClass"]').val(),
+                    percentage: 1
+                }]
             }));
         }
     });

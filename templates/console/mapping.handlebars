@@ -1,5 +1,13 @@
 <td>{{ticker}}</td>
-<td>{{assetClass}}</td>
+<td>
+    {{#each assetClasses}}
+        {{#if isMultiAsset}}
+            {{name}} {{percentage}}%
+        {{else}}
+            {{name}}
+        {{/if}}
+    {{/each}}
+</td>
 <td>
     <div class="text-right">
         <a href="#" class="fas fa-pen-square fa-lg" data-action="edit"></a> <a href="#" class="fas fa-window-close fa-lg" data-action="remove"></a>

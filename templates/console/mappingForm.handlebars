@@ -2,7 +2,15 @@
 <td colspan="2">
     <form data-action="submit">
         <div class="input-group input-group-sm">
-            <input name="assetClass" type="text" class="form-control" value="{{assetClass}}" placeholder="Asset Class" required>
+            {{#each assetClasses}}
+                {{#if ../isMultiAsset}}
+                    <input name="name{{@index}}" type="text" class="form-control" value="{{name}}" placeholder="Asset Class" required>
+                    <input name="percentage{{@index}}" type="number" step="0.1" min="0" max="100" class="form-control" value="{{percentage}}" placeholder="Allocation" required>
+                {{else}}
+                    <input name="name[0]" type="text" class="form-control" value="{{name}}" placeholder="Asset Class" required>
+                    <input name="percentage[0]" type="hidden" class="form-control" value="100">
+                {{/if}}
+            {{/each}}
             <div class="input-group-append">
                 <button class="btn btn-success" type="submit"><i class="fas fa-check"></i></button>
             </div>
