@@ -224,6 +224,11 @@ PINSIGHT.console = (function () {
     });
 
     let Brokerage = Backbone.Model.extend({
+
+        defaults: {
+            includeCash: true
+        },
+
         initialize: function (attributes) {
             this.set('account', new Account(attributes.account));
             this.set('message', new Message(attributes.message));
@@ -553,7 +558,8 @@ PINSIGHT.console = (function () {
         },
 
         events: {
-            'click [data-action="add"]': 'onAddClick'
+            'click [data-action="add"]': 'onAddClick',
+            'input [name="includeCash"]': 'onIncludeCashInput'
         },
 
         onAddClick: function (e) {
@@ -562,12 +568,25 @@ PINSIGHT.console = (function () {
             if (account)
                 this.model.updateAccount(account, this.replacementJSON(account, brokerage.get('account')));
             else
-                this.model.addAccount(new Account(brokerage.get('account').toJSON()));
+                this.model.addAccount(new Account(this.addJSON(brokerage.get('account'))));
+        },
+
+        onIncludeCashInput: function(e) {
+            this.model.get('brokerage').set('includeCash', $(e.currentTarget).prop('checked'));
+            this.render();
+        },
+
+        addJSON: function(brokerageAccount) {
+            var json = brokerageAccount.toJSON();
+            json.positions = json.positions
+                .filter(p => p.ticker !== 'CASH' || this.model.get('brokerage').get('includeCash'));
+            return json;
         },
 
         replacementJSON: function (account, brokerageAccount) {
             var json = brokerageAccount.toJSON();
-            json.positions = this.replacementPositions(account.get('positions'), brokerageAccount.get('positions'), brokerageAccount.get('type'));
+            json.positions = this.replacementPositions(account.get('positions'), brokerageAccount.get('positions'), brokerageAccount.get('type'))
+                .filter(p => p.ticker !== 'CASH' || this.model.get('brokerage').get('includeCash'));
             return json;
         },
 
@@ -590,13 +609,18 @@ PINSIGHT.console = (function () {
                 info: brokerage && brokerage.get('message').get('info'),
                 error: brokerage && brokerage.get('message').get('error'),
                 found: !!brokerage,
+                hasCash: !!brokerage && brokerage.get('account').get('positions').some(p => p.ticker === 'CASH'),
+                includeCash: brokerage && brokerage.get('includeCash'),
                 exists: !!this.model.get('accounts').get(brokerage && brokerage.get('account') && brokerage.get('account').id)
             }));
 
             if (brokerage)
                 this.$('[data-outlet="account"]').append(
                     this.addChildren(
-                        new AccountView({ model: brokerage.get('account') })
+                        new AccountView({
+                            model: brokerage.get('account'),
+                            hideCash: !brokerage.get('includeCash')
+                        })
                     )
                     .render().el
                 );
@@ -721,7 +745,8 @@ PINSIGHT.console = (function () {
     let AccountView = BaseView.extend({
         template: Handlebars.templates.account,
 
-        initialize: function () {
+        initialize: function (options) {
+            options.hideCash = options.hideCash || false;
             this.listenTo(this.model, 'change', this.onModelChange);
         },
 
@@ -776,7 +801,7 @@ PINSIGHT.console = (function () {
                 ticker: p.ticker,
                 value: formatValue(p.value),
                 currency: p.currency
-            }));
+            })).filter(p => p.ticker !== 'CASH' || !this.options.hideCash);
             this.$el.html(this.template({
                 actionable: this.options.actionable,
                 account: json

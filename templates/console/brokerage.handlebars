@@ -19,8 +19,24 @@
         {{#unless found}}
             <div>No positions found on this page &#x2639;</div>
         {{/unless}}
+        {{#if includesCash}}
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="defaultCheck1">
+                <label class="form-check-label" for="defaultCheck1">
+                    Include cash
+                </label>
+            </div>
+        {{/if}}
         <div data-outlet="account"></div>
         {{#if found}}
+            {{#if hasCash}}
+                <div class="form-check mb-3 mt-n1">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" name="includeCash" value="true" {{#if includeCash}}checked{{/if}}>
+                        Include cash
+                    </label>
+                </div>
+            {{/if}}
             {{#if exists}}
                 <button type="button" class="btn btn-primary btn-sm btn-block" data-action="add"><i class="fas fa-sync-alt"></i> Update Portfolio</button>
             {{else}}
