@@ -888,6 +888,16 @@ PINSIGHT.console = (function () {
         template: Handlebars.templates.mapping,
         templateForm: Handlebars.templates.mappingForm,
 
+        onInput: function (e) {
+            ItemView.prototype.onInput.call(this, e);
+            try {
+                this.model.parseDescription($(e.currentTarget).val());
+                e.currentTarget.setCustomValidity('')
+            } catch (ex) {
+                e.currentTarget.setCustomValidity(ex.message);
+            }
+        },
+
         editModel: function () {
             this.options.mediator.updateMapping(this.model, {
                 assetClasses: this.model.parseDescription(this.$('[name="description"]').val())
