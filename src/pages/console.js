@@ -267,6 +267,59 @@ PINSIGHT.console = (function () {
 
         isMultiAsset: function() {
             return this.get('assetClasses').length > 1;
+        },
+
+        getDescription: function() {
+            if (!this.isMultiAsset())
+                return this.get('assetClasses').reduce((a, c) => a + c.name, '');
+
+            return this.get('assetClasses').map(c => `${c.name}:${c.percentage * 100}`).join(',');
+        },
+
+        parseDescription: function (description) {
+            let keyValues = description.split(',');
+            if (keyValues.length === 1)
+                return [{
+                    name: description.split(':')[0].trim(), // TODO: empty validation
+                    percentage: 1
+                }];
+
+            let classes = keyValues.map(kv => {
+                let pair = kv.split(':');
+
+                let percentage = null;
+                if (pair.length > 1) {
+                    let match = pair[1].match(/[\d\.]{1,}/);
+                    if (match) {
+                        let value = parseFloat(match[0]);
+                        if (value > 100)
+                            throw Error(`'${pair[0]}' exceeds 100%`);
+
+                        percentage = Math.round(value * 10) / 1000;
+                    }
+                }
+
+                return {
+                    name: pair[0].trim(), // TODO: empty validation
+                    percentage: percentage
+                };
+            }).filter(c => c.percentage !== 0);
+
+            let sum = (assetClasses) => assetClasses.filter(c => c.percentage).reduce((acc, current) => acc + current.percentage, 0);
+
+            if (sum(classes) > 1)
+                throw Error('Exceeds 100%');
+
+            let missing = classes.filter(c => !c.percentage);
+            missing.forEach((m, i) => {
+                let remaining = 1 - sum(classes);
+                m.percentage = Math.round(remaining / (missing.length - i) * 1000) / 1000;
+            });
+
+            if (sum(classes) != 1)
+                throw Error('Does not add up to 100%');
+
+            return classes;
         }
     });
 
@@ -837,13 +890,7 @@ PINSIGHT.console = (function () {
 
         editModel: function () {
             this.options.mediator.updateMapping(this.model, {
-                assetClasses: this.$('[name^="name"]').map((index, element) => {
-                    let i = $(element).attr('name').match(/name\[(\d{1,})\]/)[1];
-                    return {
-                        name: $(element).val(),
-                        percentage: parseValue($(element).siblings(`[name="percentage[${i}]"]`).val()) / 100
-                    };
-                }).toArray()
+                assetClasses: this.model.parseDescription(this.$('[name="description"]').val())
             });
         },
 
@@ -857,11 +904,12 @@ PINSIGHT.console = (function () {
 
         getViewModel: function () {
             var json = this.model.toJSON();
+            json.description = this.model.getDescription();
             json.isMultiAsset = this.model.isMultiAsset();
             json.assetClasses = json.assetClasses.length
                 ? json.assetClasses.map(ac => ({
                     name: ac.name,
-                    percentage: (ac.percentage * 100).toFixed(1)
+                    percentage: formatValue(ac.percentage * 100)
                 }))
                 : [{}];
             return json;

@@ -1,8 +1,8 @@
 <td>{{ticker}}</td>
 <td>
     {{#each assetClasses}}
-        {{#if isMultiAsset}}
-            {{name}} {{percentage}}%
+        {{#if ../isMultiAsset}}
+            <div><small>{{name}} {{percentage}}%</small></div>
         {{else}}
             {{name}}
         {{/if}}
