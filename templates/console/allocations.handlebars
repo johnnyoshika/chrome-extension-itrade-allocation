@@ -4,6 +4,27 @@
     </div>
     <div class="card-body">
         {{#if this.length}}
+            <div class="mb-2">Multi-asset-class? <a href="#" class="fas fa-question-circle" data-action="hint"></a></div>
+            <div class="mb-4 text-secondary" data-element="hint" style="display:none;">
+                <div class="mb-2">
+                    Allocate a ticker to multiple assets with the following pattern:
+                    <div class="text-center">
+                        <em><strong>{class1}:{%},{class2}:{%}</strong></em>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    For example, US 60%, CA 20%, and EM 20%:<br />
+                    <div class="text-center">
+                        <em><strong>US:60,CA:20,EM:20</strong></em><br />
+                    </div>
+                </div>
+                <div class="mb-2">
+                    For convenience, missing percentages will be distributed equally. This is equivalent to the example above:<br />
+                    <div class="text-center">
+                        <em><strong>US:60,CA,EM</strong></em><br />
+                    </div>
+                </div>
+            </div>
             <table class="table table-sm mb-0">
                 <thead>
                     <tr>

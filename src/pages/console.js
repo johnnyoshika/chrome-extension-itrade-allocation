@@ -1014,6 +1014,15 @@ PINSIGHT.console = (function () {
 
         modelView: AllocationView,
 
+        events: {
+            'click [data-action="hint"]': 'onHintClick'
+        },
+
+        onHintClick: function(e) {
+            e.preventDefault();
+            this.$('[data-element="hint"]').slideToggle();
+        },
+
         addModel: function (e) {
             this.options.mediator.addAllocation(new Allocation({
                 id: this.$('[name="ticker"]').val().toUpperCase(),
