@@ -2,6 +2,9 @@ let PINSIGHT = window.PINSIGHT || {};
 
 PINSIGHT.console = (function () {
 
+    // Disable automatic style injection to not violate CSP
+    Chart.platform.disableCSSInjection = true;
+
     //#region HELPERS
 
     let parseValue = text => text && parseFloat(text.replace(/[,$]/g, ''));
@@ -1047,15 +1050,34 @@ PINSIGHT.console = (function () {
         },
         
         render: function () {
-            let a = this.model.get('assets');
+            let assets = this.model.get('assets');
             this.$el.html(this.template({
-                total: formatValue(a.total),
-                items: a.items.map(i => ({
+                total: formatValue(assets.total),
+                items: assets.items.map(i => ({
                     assetClass: i.assetClass,
                     value: formatValue(i.value),
                     percentage: (i.percentage * 100).toFixed(1)
                 }))
             }));
+
+            // without setTimeout to allow canvas to be injected into the dom, we get a context error (although the chart still renders)
+            setTimeout(() => {
+                // palette.js:
+                // - https://github.com/google/palette.js
+                // - https://stackoverflow.com/a/39884692/188740
+                // - https://jsfiddle.net/2y3o0nkx/
+                var chart = new Chart(this.$('canvas'), {
+                    type: 'pie',
+                    data: {
+                        labels: assets.items.map(i => i.assetClass),
+                        datasets: [{
+                            data: assets.items.map(i => Math.round(i.percentage * 1000) / 10),
+                            backgroundColor: palette('tol-rainbow', assets.items.length).map(hex => '#' + hex)
+                        }]
+                    }
+                });
+            }, 200);
+
             return this;
         }
     });
