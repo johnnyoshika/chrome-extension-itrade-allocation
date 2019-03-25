@@ -1049,7 +1049,47 @@ PINSIGHT.console = (function () {
             this.listenTo(this.model, 'change:assets', this.render);
         },
         
+        resizeCanvas: function (e) {
+            if (this.chart) {
+                this.chart.destroy();
+                this.chart = null;
+                this.$('canvas').remove();
+            }
+
+            let width = this.$('[data-outlet="chart"]').width();
+            this.$('[data-outlet="chart"]').html(`<div style="height:${width}px" />`);
+
+            clearTimeout(this.timer);
+            this.timer = setTimeout(this.renderChart.bind(this), 500);
+        },
+
+        renderChart: function () {
+            let assets = this.model.get('assets');
+            let width = this.$('[data-element="card-body"]').width();
+            let canvas = this.$('[data-outlet="chart"]')
+                .html(`<canvas width="${width}" height="${width}"></canvas>`)
+                    .find('canvas');
+
+            // palette.js:
+            // - https://github.com/google/palette.js
+            // - https://stackoverflow.com/a/39884692/188740
+            // - https://jsfiddle.net/2y3o0nkx/
+            this.chart = new Chart(canvas, {
+                type: 'pie',
+                data: {
+                    labels: assets.items.map(i => i.assetClass),
+                    datasets: [{
+                        data: assets.items.map(i => Math.round(i.percentage * 1000) / 10),
+                        backgroundColor: palette('tol-rainbow', assets.items.length).map(hex => '#' + hex)
+                    }]
+                }
+            });
+        },
+
         render: function () {
+            this.resizeCanvasWithContext = this.resizeCanvas.bind(this);
+            window.addEventListener('resize', this.resizeCanvasWithContext, false);
+
             let assets = this.model.get('assets');
             this.$el.html(this.template({
                 total: formatValue(assets.total),
@@ -1060,25 +1100,14 @@ PINSIGHT.console = (function () {
                 }))
             }));
 
-            // without setTimeout to allow canvas to be injected into the dom, we get a context error (although the chart still renders)
-            setTimeout(() => {
-                // palette.js:
-                // - https://github.com/google/palette.js
-                // - https://stackoverflow.com/a/39884692/188740
-                // - https://jsfiddle.net/2y3o0nkx/
-                var chart = new Chart(this.$('canvas'), {
-                    type: 'pie',
-                    data: {
-                        labels: assets.items.map(i => i.assetClass),
-                        datasets: [{
-                            data: assets.items.map(i => Math.round(i.percentage * 1000) / 10),
-                            backgroundColor: palette('tol-rainbow', assets.items.length).map(hex => '#' + hex)
-                        }]
-                    }
-                });
-            }, 200);
+            this.resizeCanvas();
 
             return this;
+        },
+
+        dispose: function () {
+            window.removeEventListener('resize', this.resizeCanvasWithContext, false);
+            BaseView.prototype.dispose.apply(this);
         }
     });
     
