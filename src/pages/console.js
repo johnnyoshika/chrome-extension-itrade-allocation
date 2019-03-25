@@ -404,7 +404,10 @@ PINSIGHT.console = (function () {
                         .flatMap(a =>
                             a.positions.flatMap(p => {
                                 let currency = this.mediator.get('currencies').toJSON().find(c => c.code === p.currency);
-                                let allocation = this.mediator.get('allocations').toJSON().find(a => a.ticker === p.ticker) || { assetClasses: { percentage: 1 } };
+                                let allocation = this.mediator.get('allocations').toJSON().find(a => a.ticker === p.ticker);
+                                if (allocation == null || !allocation.assetClasses.length)
+                                    allocation = { assetClasses: [{ percentage: 1 }] };
+
                                 return allocation.assetClasses.map(ac => {
                                     let value = p.value * ac.percentage;
                                     return [
