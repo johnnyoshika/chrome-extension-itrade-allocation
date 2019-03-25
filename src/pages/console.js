@@ -826,16 +826,7 @@ PINSIGHT.console = (function () {
         events: {
             'click [data-action="edit"]': 'onEditClick',
             'submit [data-action="submit"]': 'onSubmit',
-            'click [data-action="remove"]': 'onRemoveClick',
-            'input input': 'onInput'
-        },
-
-        onInput: function (e) {
-            this.changeButtonState();
-        },
-
-        changeButtonState: function() {
-            this.$('button').prop('disabled', !this.$('input').val().length);
+            'click [data-action="remove"]': 'onRemoveClick'
         },
 
         onEditClick: function (e) {
@@ -865,7 +856,6 @@ PINSIGHT.console = (function () {
         renderForm: function() {
             this.$el.html(this.templateForm(this.getViewModel()));
             this.$('input').first().focus();
-            this.$('button').prop('disabled', !this.$('input').val().length);
         },
 
         renderDetails() {
@@ -913,8 +903,13 @@ PINSIGHT.console = (function () {
         template: Handlebars.templates.mapping,
         templateForm: Handlebars.templates.mappingForm,
 
+        events: function(){
+            return _.extend({}, ItemView.prototype.events, {
+                'input input' : 'onInput'
+            });
+        },
+
         onInput: function (e) {
-            ItemView.prototype.onInput.call(this, e);
             try {
                 this.model.parseDescription($(e.currentTarget).val());
                 e.currentTarget.setCustomValidity('')
