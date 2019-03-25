@@ -2,7 +2,7 @@
     <div class="card-header">
         Assets
     </div>
-    <div class="card-body">
+    <div class="card-body" data-element="card-body">
         {{#if items.length}}
             <table class="table table-sm">
                 <thead>
@@ -29,6 +29,7 @@
                     </tr>
                 </tfoot>
             </table>
+            <div data-outlet="chart"></div>
         {{else}}
             <div class="text-center"><em>- empty -</em></div>
         {{/if}}

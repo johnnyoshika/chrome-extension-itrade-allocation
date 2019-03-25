@@ -2,6 +2,9 @@ let PINSIGHT = window.PINSIGHT || {};
 
 PINSIGHT.console = (function () {
 
+    // Disable automatic style injection to not violate CSP
+    Chart.platform.disableCSSInjection = true;
+
     //#region HELPERS
 
     let parseValue = text => text && parseFloat(text.replace(/[,$]/g, ''));
@@ -1046,17 +1049,68 @@ PINSIGHT.console = (function () {
             this.listenTo(this.model, 'change:assets', this.render);
         },
         
+        resizeCanvas: function (e) {
+            if (!this.model.get('assets').items.length)
+                return;
+
+            if (this.chart) {
+                this.chart.destroy();
+                this.chart = null;
+                this.$('canvas').remove();
+            }
+
+            let width = this.$('[data-outlet="chart"]').width();
+            this.$('[data-outlet="chart"]').html(`<div style="height:${width}px" />`);
+
+            clearTimeout(this.timer);
+            this.timer = setTimeout(this.renderChart.bind(this), 500);
+        },
+
+        renderChart: function () {
+            let assets = this.model.get('assets');
+            let width = this.$('[data-element="card-body"]').width();
+            let canvas = this.$('[data-outlet="chart"]')
+                .html(`<canvas width="${width}" height="${width}"></canvas>`)
+                    .find('canvas');
+
+            // palette.js:
+            // - https://github.com/google/palette.js
+            // - https://stackoverflow.com/a/39884692/188740
+            // - https://jsfiddle.net/2y3o0nkx/
+            this.chart = new Chart(canvas, {
+                type: 'pie',
+                data: {
+                    labels: assets.items.map(i => i.assetClass),
+                    datasets: [{
+                        data: assets.items.map(i => Math.round(i.percentage * 1000) / 10),
+                        backgroundColor: palette('tol-rainbow', assets.items.length).map(hex => '#' + hex)
+                    }]
+                }
+            });
+        },
+
         render: function () {
-            let a = this.model.get('assets');
+            this.resizeCanvasWithContext = this.resizeCanvas.bind(this);
+            window.addEventListener('resize', this.resizeCanvasWithContext, false);
+
+            let assets = this.model.get('assets');
             this.$el.html(this.template({
-                total: formatValue(a.total),
-                items: a.items.map(i => ({
+                total: formatValue(assets.total),
+                items: assets.items.map(i => ({
                     assetClass: i.assetClass,
                     value: formatValue(i.value),
                     percentage: (i.percentage * 100).toFixed(1)
                 }))
             }));
+
+            this.resizeCanvas();
+
             return this;
+        },
+
+        dispose: function () {
+            window.removeEventListener('resize', this.resizeCanvasWithContext, false);
+            BaseView.prototype.dispose.apply(this);
         }
     });
     
