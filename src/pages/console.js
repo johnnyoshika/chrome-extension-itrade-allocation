@@ -1050,6 +1050,9 @@ PINSIGHT.console = (function () {
         },
         
         resizeCanvas: function (e) {
+            if (!this.model.get('assets').items.length)
+                return;
+
             if (this.chart) {
                 this.chart.destroy();
                 this.chart = null;
