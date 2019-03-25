@@ -334,11 +334,11 @@ PINSIGHT.console = (function () {
 
     //#endregion
 
-    //#region Portfolio
+    //#region Assets
 
-    let Portfolio = Backbone.Model.extend({
+    let Assets = Backbone.Model.extend({
         defaults: {
-            allocations: {
+            assets: {
                 items: [],
                 total: 0
             }
@@ -361,7 +361,7 @@ PINSIGHT.console = (function () {
             let accounts = this.mediator.get('accounts').toJSON();
             let positions = accounts.flatMap(account => account.positions);
 
-            let allocations = positions
+            let assets = positions
                 .map(p => ({
                     position: p,
                     mapping: mappings.find(m => m.ticker === p.ticker && !!m.assetClasses.length)
@@ -374,24 +374,24 @@ PINSIGHT.console = (function () {
                             }]
                         }
                 }))
-                .reduce((allocations, pm) =>
-                    pm.mapping.assetClasses.reduce((allocations, assetClass) => {
-                        let allocation = allocations.find(a => a.assetClass === assetClass.name);
-                        if (!allocation) {
-                            allocation = { assetClass: assetClass.name, value: 0 };
-                            allocations.push(allocation);
+                .reduce((assets, pm) =>
+                    pm.mapping.assetClasses.reduce((assets, assetClass) => {
+                        let asset = assets.find(a => a.assetClass === assetClass.name);
+                        if (!asset) {
+                            asset = { assetClass: assetClass.name, value: 0 };
+                            assets.push(asset);
                         }
-                        allocation.value += this.convertValue(pm.position.value * assetClass.percentage, pm.position.currency, currencies);
-                        return allocations;
-                    }, allocations), []);
+                        asset.value += this.convertValue(pm.position.value * assetClass.percentage, pm.position.currency, currencies);
+                        return assets;
+                    }, assets), []);
 
-            let total = allocations.reduce((sum, a) => sum + a.value, 0);
-            allocations = allocations
+            let total = assets.reduce((sum, a) => sum + a.value, 0);
+            assets = assets
                 .sort((a, b) => b.value - a.value)
                 .map(a => ({ assetClass: a.assetClass, value: a.value, percentage: a.value / total }));
 
-            this.set('allocations', {
-                items: allocations,
+            this.set('assets', {
+                items: assets,
                 total: total
             });
         },
@@ -424,10 +424,10 @@ PINSIGHT.console = (function () {
             });
         },
 
-        getAllocationsCsv: function () {
+        getAssetsCsv: function () {
             return Papa.unparse({
                 fields: ['Asset Class', 'Value', '% Portfolio'],
-                data: this.get('allocations')
+                data: this.get('assets')
                     .items
                     .map(i =>[i.assetClass, i.value, i.percentage])
             });
@@ -669,11 +669,11 @@ PINSIGHT.console = (function () {
               .render().el
             );
 
-            let portfolio = new Portfolio(null, { mediator: this.model });
-            this.$('[data-outlet="allocations"]').append(
+            let assets = new Assets(null, { mediator: this.model });
+            this.$('[data-outlet="assets"]').append(
               this.addChildren(
-                new AllocationsView({
-                    model: portfolio
+                new AssetsView({
+                    model: assets
                 })
               )
               .render().el
@@ -682,7 +682,7 @@ PINSIGHT.console = (function () {
             this.$('[data-outlet="download"]').append(
               this.addChildren(
                 new DownloadView({
-                    model: portfolio
+                    model: assets
                 })
               )
               .render().el
@@ -1025,17 +1025,17 @@ PINSIGHT.console = (function () {
 
     //#endregion
 
-    //#region AllocationsView
+    //#region AssetsView
 
-    let AllocationsView = BaseView.extend({
-        template: Handlebars.templates.allocations,
+    let AssetsView = BaseView.extend({
+        template: Handlebars.templates.assets,
 
         initialize: function () {
-            this.listenTo(this.model, 'change:allocations', this.render);
+            this.listenTo(this.model, 'change:assets', this.render);
         },
         
         render: function () {
-            let a = this.model.get('allocations');
+            let a = this.model.get('assets');
             this.$el.html(this.template({
                 total: formatValue(a.total),
                 items: a.items.map(i => ({
@@ -1057,7 +1057,7 @@ PINSIGHT.console = (function () {
 
         events: {
             'click [data-action="download-portfolio"]': 'onDownloadPortfolioClick',
-            'click [data-action="download-allocations"]': 'onDownloadAllocationsClick'
+            'click [data-action="download-assets"]': 'onDownloadAssetsClick'
         },
 
         onDownloadPortfolioClick: function() {
@@ -1070,12 +1070,12 @@ PINSIGHT.console = (function () {
             });
         },
 
-        onDownloadAllocationsClick: function() {
-            let blob = new Blob([this.model.getAllocationsCsv()], { type: 'text/csv;charset=utf-8;' });
+        onDownloadAssetsClick: function () {
+            let blob = new Blob([this.model.getAssetsCsv()], { type: 'text/csv;charset=utf-8;' });
             let url = URL.createObjectURL(blob);
             chrome.downloads.download({
                 url: url,
-                filename: `${formatDate(new Date())} allocations.csv`,
+                filename: `${formatDate(new Date())} assets.csv`,
                 saveAs: true
             });
         },
