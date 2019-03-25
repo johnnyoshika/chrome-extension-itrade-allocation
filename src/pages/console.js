@@ -25,10 +25,10 @@ PINSIGHT.console = (function () {
         initialize: function (attributes, options) {
             this.set('accounts', new Accounts([]));
             this.set('currencies', new Currencies([]));
-            this.set('mappings', new Mappings([]));
+            this.set('allocations', new Allocations([]));
             this.listenTo(this.get('accounts'), 'add remove update reset', this._onAccountsChange);
 
-            chrome.storage.sync.get(['accounts', 'currencies', 'mappings'], data => this._setValues(data));
+            chrome.storage.sync.get(['accounts', 'currencies', 'allocations'], data => this._setValues(data));
 
             chrome.storage.onChanged.addListener((changes, namespace) => this._onStorageChanged(changes));
 
@@ -59,7 +59,7 @@ PINSIGHT.console = (function () {
         },
 
         _setValues: function (data) {
-            ['accounts', 'currencies', 'mappings'].forEach(n => {
+            ['accounts', 'currencies', 'allocations'].forEach(n => {
                 if (data[n])
                     this['_set' + this._capitalize(n)](data[n]);
             });
@@ -67,7 +67,7 @@ PINSIGHT.console = (function () {
         },
 
         _onStorageChanged: function (changes) {
-            ['accounts', 'currencies', 'mappings'].forEach(n => {
+            ['accounts', 'currencies', 'allocations'].forEach(n => {
                 if (changes[n])
                     this['_set' + this._capitalize(n)](changes[n].newValue)
             });
@@ -151,37 +151,37 @@ PINSIGHT.console = (function () {
             this._removeModelInCollection(currency, 'currencies');
         },
 
-        _definedMappings: function (mappings) {
-            return mappings
+        _definedAllocations: function (allocations) {
+            return allocations
                 .toJSON()
-                .filter(m => !!m.assetClasses.length);
+                .filter(a => !!a.assetClasses.length);
         },
 
-        _setMappings: function (mappings) {
-            this.get('mappings').set(
-                mappings.concat(
-                    this._missingMappingTickers(mappings).map(ticker =>
-                        new Mapping({
+        _setAllocations: function (allocations) {
+            this.get('allocations').set(
+                allocations.concat(
+                    this._missingAllocationTickers(allocations).map(ticker =>
+                        new Allocation({
                             id: ticker,
                             ticker: ticker
                         }))));
         },
 
-        addMapping: function (mapping) {
-            this._addModelInCollection(mapping, 'mappings');
+        addAllocation: function (allocation) {
+            this._addModelInCollection(allocation, 'allocations');
         },
 
-        updateMapping: function (mapping, changes) {
-            this._updateModelInCollection(mapping, 'mappings', changes);
+        updateAllocation: function (allocation, changes) {
+            this._updateModelInCollection(allocation, 'allocations', changes);
         },
 
-        removeMapping: function (mapping) {
-            this._removeModelInCollection(mapping, 'mappings');
+        removeAllocation: function (allocation) {
+            this._removeModelInCollection(allocation, 'allocations');
         },
 
         _onAccountsChange: function() {
             this._setCurrencies(this._definedCurrencies(this.get('currencies')));
-            this._setMappings(this._definedMappings(this.get('mappings')));
+            this._setAllocations(this._definedAllocations(this.get('allocations')));
         },
 
         _portfolioCurrencyCodes: function() {
@@ -205,10 +205,10 @@ PINSIGHT.console = (function () {
                 .filter(c => !defined.some(d => d == c));
         },
 
-        _missingMappingTickers: function (mappings) {
-            let mapped = mappings.map(m => m.ticker);
+        _missingAllocationTickers: function (allocations) {
+            let allotted = allocations.map(a => a.ticker);
             return this._portfolioTickers()
-                .filter(t => !mapped.some(m => m == t));
+                .filter(t => !allotted.some(a => a == t));
         },
 
         goToDashboard: function () {
@@ -263,9 +263,9 @@ PINSIGHT.console = (function () {
 
     //#endregion
 
-    //#region Mapping
+    //#region Allocation
 
-    let Mapping = Backbone.Model.extend({
+    let Allocation = Backbone.Model.extend({
         defaults: {
             assetClasses: []
         },
@@ -328,8 +328,8 @@ PINSIGHT.console = (function () {
         }
     });
 
-    let Mappings = Backbone.Collection.extend({
-        model: Mapping
+    let Allocations = Backbone.Collection.extend({
+        model: Allocation
     });
 
     //#endregion
@@ -357,14 +357,14 @@ PINSIGHT.console = (function () {
 
         calculate: function () {
             let currencies = this.mediator.get('currencies').toJSON();
-            let mappings = this.mediator.get('mappings').toJSON();
+            let allocations = this.mediator.get('allocations').toJSON();
             let accounts = this.mediator.get('accounts').toJSON();
             let positions = accounts.flatMap(account => account.positions);
 
             let assets = positions
                 .map(p => ({
                     position: p,
-                    mapping: mappings.find(m => m.ticker === p.ticker && !!m.assetClasses.length)
+                    allocation: allocations.find(a => a.ticker === p.ticker && !!a.assetClasses.length)
                         ||
                         {
                             ticker: p.ticker,
@@ -375,7 +375,7 @@ PINSIGHT.console = (function () {
                         }
                 }))
                 .reduce((assets, pm) =>
-                    pm.mapping.assetClasses.reduce((assets, assetClass) => {
+                    pm.allocation.assetClasses.reduce((assets, assetClass) => {
                         let asset = assets.find(a => a.assetClass === assetClass.name);
                         if (!asset) {
                             asset = { assetClass: assetClass.name, value: 0 };
@@ -404,8 +404,8 @@ PINSIGHT.console = (function () {
                         .flatMap(a =>
                             a.positions.flatMap(p => {
                                 let currency = this.mediator.get('currencies').toJSON().find(c => c.code === p.currency);
-                                let mapping = this.mediator.get('mappings').toJSON().find(m => m.ticker === p.ticker) || { assetClasses: { percentage: 1 } };
-                                return mapping.assetClasses.map(ac => {
+                                let allocation = this.mediator.get('allocations').toJSON().find(a => a.ticker === p.ticker) || { assetClasses: { percentage: 1 } };
+                                return allocation.assetClasses.map(ac => {
                                     let value = p.value * ac.percentage;
                                     return [
                                         a.brokerage,
@@ -659,10 +659,10 @@ PINSIGHT.console = (function () {
               .render().el
             );
 
-            this.$('[data-outlet="mappings"]').append(
+            this.$('[data-outlet="allocations"]').append(
               this.addChildren(
-                new MappingsView({
-                    collection: this.model.get('mappings'),
+                new AllocationsView({
+                    collection: this.model.get('allocations'),
                     mediator: this.model
                 })
               )
@@ -897,11 +897,11 @@ PINSIGHT.console = (function () {
 
     //#endregion
 
-    //#region MappingView
+    //#region AllocationView
 
-    let MappingView = ItemView.extend({
-        template: Handlebars.templates.mapping,
-        templateForm: Handlebars.templates.mappingForm,
+    let AllocationView = ItemView.extend({
+        template: Handlebars.templates.allocation,
+        templateForm: Handlebars.templates.allocationForm,
 
         events: function(){
             return _.extend({}, ItemView.prototype.events, {
@@ -919,7 +919,7 @@ PINSIGHT.console = (function () {
         },
 
         editModel: function () {
-            this.options.mediator.updateMapping(this.model, {
+            this.options.mediator.updateAllocation(this.model, {
                 assetClasses: this.model.parseDescription(this.$('[name="description"]').val())
             });
         },
@@ -929,7 +929,7 @@ PINSIGHT.console = (function () {
         },
 
         removeModel: function (e) {
-            this.options.mediator.removeMapping(this.model);
+            this.options.mediator.removeAllocation(this.model);
         },
 
         getViewModel: function () {
@@ -1002,17 +1002,17 @@ PINSIGHT.console = (function () {
 
     //#endregion
 
-    //#region MappingsView
+    //#region AllocationsView
 
-    let MappingsView = ItemsView.extend({
-        template: Handlebars.templates.mappings,
-        templateForm: Handlebars.templates.mappingForm,
-        templateAddButton: Handlebars.templates.mappingsAddButton,
+    let AllocationsView = ItemsView.extend({
+        template: Handlebars.templates.allocations,
+        templateForm: Handlebars.templates.allocationForm,
+        templateAddButton: Handlebars.templates.allocationsAddButton,
 
-        modelView: MappingView,
+        modelView: AllocationView,
 
         addModel: function (e) {
-            this.options.mediator.addMapping(new Mapping({
+            this.options.mediator.addAllocation(new Allocation({
                 id: this.$('[name="ticker"]').val().toUpperCase(),
                 ticker: this.$('[name="ticker"]').val().toUpperCase(),
                 assetClasses: [{
