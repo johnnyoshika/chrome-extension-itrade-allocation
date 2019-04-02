@@ -354,7 +354,7 @@ PINSIGHT.console = (function () {
         },
 
         convertValue: function (value, currencyCode, currencies) {
-            let currency = currencies.find(c => c.code.toUpperCase() === currencyCode.toUpperCase() && _.isNumber(c.multiplier)) || { multiplier: 1 };
+            let currency = currencies.find(c => c.code.toUpperCase() === (currencyCode || '').toUpperCase() && _.isNumber(c.multiplier)) || { multiplier: 1 };
             return value * currency.multiplier;
         },
 
