@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Portfolio Insight",
   "description": "Easily scrape portfolio positions at Scotia iTrade, Questrade, and Wealthsimple, then report total asset allocations.",
-  "version": "1.0",
+  "version": "1.1",
   "author": "Johnny Oshika",
   "permissions": [
     "declarativeContent",
