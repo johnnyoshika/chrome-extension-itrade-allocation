@@ -6,10 +6,10 @@ chrome.runtime.onInstalled.addListener(() => {
           pageUrl: { urlMatches: 'https:\/\/www\.scotiaonline\.scotiabank\.com\/online\/views\/accounts\/accountDetails\/.+' }
         }),
         new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { urlMatches: 'https:\/\/my\w*?\.questrade\.com\/trading\/account\/balances' }
+          pageUrl: { urlMatches: 'https:\/\/my(practice)*?\.questrade\.com\/trading\/account\/balances' }
         }),
         new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { urlMatches: 'https:\/\/my\w*?\.questrade\.com\/trading\/account\/positions' }
+          pageUrl: { urlMatches: 'https:\/\/my(practice)*?\.questrade\.com\/trading\/account\/positions' }
         }),
         new chrome.declarativeContent.PageStateMatcher({
           pageUrl: { urlMatches: 'https:\/\/my\.wealthsimple\.com\/app\/account' }

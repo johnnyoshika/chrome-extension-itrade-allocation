@@ -45,9 +45,9 @@ PINSIGHT.console = (function () {
                     let tab = tabs[0];
                     if (/https:\/\/www\.scotiaonline\.scotiabank\.com\/online\/views\/accounts\/accountDetails\/.+/.test(tab.url))
                         this._executeScript('/contents/scotia-itrade.js');
-                    else if (/https:\/\/my\w*?\.questrade\.com\/trading\/account\/balances/.test(tab.url))
+                    else if (/https:\/\/my(practice)*?\.questrade\.com\/trading\/account\/balances/.test(tab.url))
                         this._executeScript('/contents/questrade-balances.js');
-                    else if (/https:\/\/my\w*?\.questrade\.com\/trading\/account\/positions/.test(tab.url))
+                    else if (/https:\/\/my(practice)*?\.questrade\.com\/trading\/account\/positions/.test(tab.url))
                         this._executeScript('/contents/questrade-positions.js');
                     else if (/https:\/\/my\.wealthsimple\.com\/app\/account/.test(tab.url))
                         this._executeScript('/contents/wealthsimple.js');
